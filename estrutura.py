@@ -1412,7 +1412,7 @@ def update_tempo_por_lead_graph(selected_problema, start_date, end_date):
     return fig_tempo_por_lead_wpp
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8050)))
 
 # df_final_limpo.to_excel('df_final_limpo.xlsx', index=False)
 
