@@ -21,52 +21,6 @@ from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import plotly.express as px
 
-# Substitua pelo caminho para o seu arquivo de credenciais JSON
-credentials_path = "gaAPI.json"
-
-# Inicializar o cliente com credenciais
-client = BetaAnalyticsDataClient.from_service_account_file(credentials_path)
-
-# Defina seu ID da Propriedade do Google Analytics
-property_id = "441600247"  # Substitua pelo seu property ID
-
-# Função para buscar dados de Leads e Custo dos Leads
-def fetch_lead_data(property_id, start_date, end_date):
-    try:
-        request = RunReportRequest(
-            property=f"properties/{property_id}",
-            dimensions=[Dimension(name="sessionCampaignName")],  # Campanhas associadas a leads
-            metrics=[
-                Metric(name="conversions"),  # Supondo que conversões estejam configuradas como geração de leads
-                Metric(name="advertiserAdCost")  # Custo de anúncios que geraram leads
-            ],
-            date_ranges=[DateRange(start_date=start_date, end_date=end_date)],
-        )
-        response = client.run_report(request)
-
-        # Correção para extrair os valores das métricas corretamente
-        data = [
-            {
-                "sessionCampaignName": row.dimension_values[0].value,  # Captura o valor da dimensão
-                "conversions": row.metric_values[0].value,             # Captura o valor da primeira métrica
-                "advertiserAdCost": row.metric_values[1].value         # Captura o valor da segunda métrica
-            }
-            for row in response.rows
-        ]
-
-        # Transformar em DataFrame
-        df_analytics = pd.DataFrame(data)
-        print("Dados do Google Analytics extraídos com sucesso.")
-        return df_analytics
-    except Exception as e:
-        print(f"Erro ao extrair dados do Google Analytics: {e}")
-        return pd.DataFrame()
-
-# Extraindo dados para um período específico
-df_analytics = fetch_lead_data(property_id, "2024-08-01", "2024-09-13")
-
-df_analytics
-
 """# Puxando os dados da API do Pipedrive
 
 """
