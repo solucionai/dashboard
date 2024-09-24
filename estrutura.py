@@ -14,6 +14,7 @@ Original file is located at
 
 from google.analytics.data_v1beta import BetaAnalyticsDataClient, RunReportRequest, DateRange, Dimension, Metric
 import requests
+import pandas as pd
 from datetime import datetime, timedelta
 from flask import Flask
 import dash
