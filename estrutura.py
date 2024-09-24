@@ -21,6 +21,7 @@ from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
+import os
 
 """# Puxando os dados da API do Pipedrive
 
