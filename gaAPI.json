@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "graphite-proton-435013-i8",
+  "private_key_id": "fbb485b5752cbb3037bfa61099676f7f5f8c39e7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCz0MpDRkOyT7VX\nLKhGr08NoSi0p4GItzWqfU+VWFYmcKwrLebqSgERfuWs4xpzu6by2tkZ33oliKil\n6Qh9wlXfeZkwM57vriDEaLuQt9LJsEGxAW4R1nOgFLR/jAx41cOwOqC+EdLe8Y0K\nAmZp+h1ta/o2UHPwxq7yz3416vyWBqdKAA3EnpjYQ4FAG8fb4fMWzB+oaJPwAcGn\n6aXQGZJohgjdo10Yepoc6U1XiJTXVYuoDl0krstqMK+6OF5V92CySN2Htm5b9CPc\nMxgX7C224sDftOk6S1Wq74ZTU9DI9IQWhoMppdIXjTUd1xD1lvQwbXWUvfBrMez3\nCl6UooBHAgMBAAECggEADJ0jkynlVdIsRmaQ52R6MdqRoG/1BkIpNux+HgaJrz34\nKzntGO0Cu4Igr8q+mvUZoQT5IHeCJLU8H2dZe85GIocagpHHHx537fnq2RwMDVnv\n7HAikzMX/q11JqgMYphG7KCFkM/Emx8WuxJasinO0VOMby2gSc5Q4iJBbZwuW9e9\nev09aL+aqQO5O+k4e7sZtECX3jkFlfHrWnlcv4Ot01PEkSNJBwt3TEJ+wbHpuc/u\nY2ZJExYRLLidqIffwzi4OqpRjj+Bbl/rw/Fn3SGQxjfAL5RKjUxbMpbX8XlvJpoA\nA78UZs/DEM4VyHRMQmyY7Z09YqA94zI1P0E/bQj+AQKBgQDkmFqmlMbKZwQrw5yw\nX/mf/wksU+Eo8F45H0fKkJN9+FNymsk+y/tfyoLM2BBrQnWRsEIznRQ+sQtC+694\nbCnPLVwXHhsD1xCV9VLzPGAaQQR10i4TJ5FjjZwsw3PktGewDMmNzSha/2PdGje2\nQ060mYPJJcFnrEPCiA/uNmCKKQKBgQDJX2DtFxALJB8ibOqm8sxnBtqg1arYDJXM\nvmuzQUgoij5S3qDUElW+DKhpsZ9SgaCPKlJMWVJxPtZxbqKSI9YjJleaR2UV/yvA\nLIb8QJcuWXomaaOsaCuDsgAzrcsZOEXHGKNC182x3Zd0dRpXDiamqw+rQMoEsY+N\nP2VtMm3k7wKBgExM+j0N/ciDWCYPddZ9QoIAC5zLJqWWjay9XyYi2cg7QgdH2RJn\n3bDclIoxOFHE7h9B2OcHcEF4sMyb27bzS4VGm61vtA61E2kqaJSdu2on94goLo7g\nLywukUlzt9RHzzA5JHF7YBP3mOqtHJlun++yKgXS31puanOdHMwjRFf5AoGANnAv\nbsjeUHS6af8RzII02eFTd0lr/y4fzRLpYLNUQ4lj4dlHly1BurgHS1N2Y8KhWjKx\nvuwiynSXWmDzWBiSCjySUCXe4PxzomcnMshvVltgF0RVuAUNRnP3dAEWt8Grs3Ao\nqqhWdjAWgqgpr8Eml8YE3WINewlZanDqBYQti0cCgYEA4xmUbISXuv4wEcIDqpcG\nyl8Q5DjR7KEm+UfXAEBe1OEVUyn791Ox29Wf3p5CwBxJ3GTm01LA2pIJoo2PtIW9\nFoAt1gbAsNC4cdU/hrKvSXvjy9wYsJL4rMXN57oGRjP7IG85UyKGdWC2TPAtobKy\nsr5ycQfpBVdea36Fr23R5FM=\n-----END PRIVATE KEY-----\n",
+  "client_email": "solucionai@graphite-proton-435013-i8.iam.gserviceaccount.com",
+  "client_id": "102901781090090863032",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/solucionai%40graphite-proton-435013-i8.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
