@@ -9,8 +9,8 @@ Original file is located at
 # Puxando os dados do Analytics
 """
 
-!pip install google-analytics-data
-!pip install dash dash-bootstrap-components plotly flask
+# !pip install google-analytics-data
+# !pip install dash dash-bootstrap-components plotly flask
 
 from google.analytics.data_v1beta import BetaAnalyticsDataClient, RunReportRequest, DateRange, Dimension, Metric
 import requests
