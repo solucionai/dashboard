@@ -441,15 +441,19 @@ porcentagem_regiao = df_final_limpo['Regiao'].value_counts(normalize=True) * 100
 # else:
 #     print("O DataFrame df_final_limpo não está carregado.")
 
-# Criando o mapeamento para renomear os valores de 'stage_id'
+# Criando o mapeamento correto para renomear os valores de 'stage_id' de números para strings
 stage_mapping = {
+    1: 'Captados',
     8: 'Em Análise',
-    7: 'Recuperação',
-    1: 'Captados'
+    7: 'Recuperação'
 }
 
-# Aplicando o mapeamento com o uso de .loc para evitar o warning
+# Aplicando o mapeamento corretamente usando .loc para evitar o SettingWithCopyWarning
 df_final_limpo.loc[:, 'stage_id'] = df_final_limpo['stage_id'].map(stage_mapping)
+
+# Verifique se o mapeamento foi aplicado corretamente
+print(df_final_limpo['stage_id'].unique())
+
 
 # Exibindo os valores únicos para verificar se a mudança foi aplicada corretamente
 # print(df_final_limpo['stage_id'].unique())
