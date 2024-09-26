@@ -816,11 +816,15 @@ def display_page(n_home, n_leads, n_analise, n_atendentes):
                     clearable=False,
                     style={'width': '50%', 'margin-bottom': '20px'}
                 )
-
                 # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
                 leads_by_date = df.groupby(df['created_at'].dt.date).size()
                 fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
                                           labels={'x': 'Data', 'y': 'Número de Leads'})
+
+                # Adicionar números no gráfico para cada ponto
+                fig_total_leads.add_scatter(x=leads_by_date.index, y=leads_by_date.values, mode='text',
+                                            text=leads_by_date.values, textposition="top center", showlegend=False)
+
 
                 # 2. Leads Cadastrados na Base por Tipo de Problema
                 leads_by_problem = df['PROBLEMA'].value_counts()
