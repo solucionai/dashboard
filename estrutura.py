@@ -1614,13 +1614,13 @@ def display_page(n_home, n_leads, n_atendentes):
 
                 # Card com a média de pessoas por dia (card azul)
                 card_blue = html.Div([
-                    html.H4("Média de Leads por Dia", style={"margin-bottom": "10px"}),
+                    html.H4("Média de Pessoas por Dia", style={"margin-bottom": "10px"}),
                     html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
                 ], style=CARD_STYLE_BLUE)
 
                 # Card com o total de pessoas (card vermelho)
                 card_red = html.Div([
-                    html.H4("Total de Leads na Base", style={"margin-bottom": "10px"}),
+                    html.H4("Total de Pessoas na Base", style={"margin-bottom": "10px"}),
                     html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
                 ], style=CARD_STYLE_RED)
 
