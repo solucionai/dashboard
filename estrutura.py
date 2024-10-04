@@ -1626,7 +1626,7 @@ def display_page(n_home, n_leads, n_atendentes):
 
                 # Card com o total de contratos assinados (card verde)
                 card_green = html.Div([
-                    html.H4("Contratos Assinados", style={"margin-bottom": "10px"}),
+                    html.H4("Total de Contratos Assinados", style={"margin-bottom": "10px"}),
                     html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
                 ], style=CARD_STYLE_GREEN)
 
