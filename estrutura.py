@@ -73,7 +73,7 @@ df_etiquetas = df_etiquetas.fillna(0)
 
 # Salvar como CSV
 df_etiquetas.to_csv('etiquetas.csv', index=False)
-print("Arquivo etiquetas.xlsx convertido para etiquetas.csv com sucesso e valores nulos substituídos por 0.")
+# print("Arquivo etiquetas.xlsx convertido para etiquetas.csv com sucesso e valores nulos substituídos por 0.")
 
 # Carregar o arquivo etiquetas.xlsx
 df_etiquetas = pd.read_excel('etiquetas.xlsx')
@@ -94,6 +94,8 @@ df_etiquetas['numero_wpp'] = df_etiquetas['numero_wpp'].apply(lambda x: f'+{x}')
 
 # Recolocar a coluna "Data Inscrição" de volta ao DataFrame
 df_etiquetas['Data Inscrição'] = coluna_data
+
+# df_etiquetas
 
 df_hermes= pd.read_excel('hermes.xlsx')
 df_gabi = pd.read_excel('gabi.xlsx')
@@ -190,8 +192,8 @@ print(f"Valor máximo global: {max_global}")
 # Criar a coluna FLAG_FINAL, onde 1 indica que a pessoa chegou ao fim e 0 indica que não
 df_endpoint['FLAG_FINAL'] = df_endpoint[columns].max(axis=1).apply(lambda x: 1 if x == max_global else 0)
 
-# Exibir as primeiras linhas para ver o resultado
-print(df_endpoint[['FLAG_FINAL'] + columns].head())
+# # Exibir as primeiras linhas para ver o resultado
+# print(df_endpoint[['FLAG_FINAL'] + columns].head())
 
 """# Unificação e tratamento de dados"""
 
@@ -200,6 +202,183 @@ df_endpoint_dup = df_endpoint
 df_pipedrive_dup = df_pipedrive
 df_etiquetas_dup = df_etiquetas
 df_tudao2 = df_etiquetas.copy()
+
+# Adicionando a nova coluna 'Atribuidos' com o valor 1 para todas as linhas
+df_gabi['Atribuidos'] = 1
+
+# Adicionando a nova coluna 'Atribuidos' com o valor 1 para todas as linhas
+df_hermes['Atribuidos'] = 2
+
+df_atribuido = pd.concat([df_gabi, df_hermes], ignore_index=True)
+
+df_contratog['Contrato'] = 1
+
+df_contratoh['Contrato'] = 2
+
+df_contrato= pd.concat([df_contratog, df_contratoh], ignore_index=True)
+
+# Supondo que df_contrato e df_atribuido já estejam definidos
+
+# Fazendo o merge/junção pela coluna "Telefone", mantendo todos os valores do df_atribuido
+df_atendentes = pd.merge(df_atribuido, df_contrato, on='Telefone', how='left')
+
+# Preenchendo os valores NaN de DDD_x com os valores de DDD_y e removendo as colunas duplicadas
+df_atendentes['DDD'] = df_atendentes['DDD_x'].combine_first(df_atendentes['DDD_y'])
+df_atendentes['Data Inscrição'] = df_atendentes['Data Inscrição_x'].combine_first(df_atendentes['Data Inscrição_y'])
+
+# Agora, podemos remover as colunas duplicadas (_x e _y)
+df_atendentes = df_atendentes.drop(columns=['DDD_x', 'DDD_y', 'Data Inscrição_x', 'Data Inscrição_y'])
+
+# Convertendo as colunas 'DDD' e 'Contrato' para o tipo int, primeiro tratando possíveis NaN que possam existir
+df_atendentes['DDD'] = df_atendentes['DDD'].fillna(0).astype(int)
+df_atendentes['Contrato'] = df_atendentes['Contrato'].fillna(0).astype(int)
+
+# Renomeando a coluna 'Telefone' no df_atendentes para 'numero_wpp'
+df_atendentes.rename(columns={'Telefone': 'numero_wpp'}, inplace=True)
+
+# Adicionar um '+' antes de todos os valores na coluna 'numero_wpp'
+df_atendentes['numero_wpp'] = df_atendentes['numero_wpp'].apply(lambda x: f'+{x}')
+
+# Realizando o merge, mantendo todos os valores de 'numero_wpp' no df_tudao2
+df_merged = pd.merge(df_tudao2, df_atendentes, on='numero_wpp', how='left')
+
+# Preenchendo os valores NaN de DDD_x com os valores de DDD_y e removendo as colunas duplicadas
+df_merged['DDD'] = df_merged['DDD_x'].combine_first(df_merged['DDD_y'])
+df_merged['Data Inscrição'] = df_merged['Data Inscrição_x'].combine_first(df_merged['Data Inscrição_y'])
+
+# Agora, podemos remover as colunas duplicadas (_x e _y)
+df_merged = df_merged.drop(columns=['DDD_x', 'DDD_y', 'Data Inscrição_x', 'Data Inscrição_y'])
+
+# Convertendo as colunas 'DDD' e 'Contrato' para o tipo int, primeiro tratando possíveis NaN que possam existir
+df_merged['DDD'] = df_merged['DDD'].fillna(0)
+df_merged['Contrato'] = df_merged['Contrato'].fillna(0)
+df_merged['Atribuidos'] = df_merged['Atribuidos'].fillna(0)
+
+# df_merged
+
+# Selecionando as colunas de interesse
+cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# Contando quantas linhas têm a soma de 1 nas colunas de interesse
+soma_1_count = (df_merged[cols_of_interest].sum(axis=1) == 1).sum()
+
+# # Exibindo o resultado
+# print(f"Total de linhas onde a soma é 1: {soma_1_count}")
+
+# Definindo as colunas de interesse (as colunas de problemas binários)
+cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# Somando todos os valores das 7 colunas para calcular o total de problemas
+total_problemas = df_merged[cols_of_interest].sum().sum()
+
+# Calculando a proporção de cada problema em relação ao total de problemas
+proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
+
+# # Exibindo as proporções em porcentagem
+# print(proporcoes)
+
+# Selecionando as colunas de interesse
+cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# Contando quantas vezes o valor 1 aparece em cada uma das colunas
+occurrences = df_merged[cols_of_interest].sum()
+
+# # Exibindo os resultados
+# print(occurrences)
+
+import numpy as np
+
+# Selecionar as linhas onde a soma das colunas de interesse é 0, 2 ou 3
+mask = df_merged[cols_of_interest].sum(axis=1).isin([0, 2, 3])
+
+# Agora, aplicamos o aumento de problemas com base nas proporções calculadas
+for col in cols_of_interest:
+    # Calculando a quantidade de valores para aumentar com base na proporção
+    num_aumentar = int(proporcoes[col] * mask.sum() / 100)
+
+    # Alterando aleatoriamente os valores de 0 para 1 em colunas específicas
+    indices_aumentar = np.random.choice(df_merged[mask].index, num_aumentar, replace=False)
+    df_merged.loc[indices_aumentar, col] = 1
+
+# Selecionando as colunas de interesse
+cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# Contando quantas vezes o valor 1 aparece em cada uma das colunas
+occurrences = df_merged[cols_of_interest].sum()
+
+# # Exibindo os resultados
+# print(occurrences)
+
+# Definindo as colunas de interesse (as colunas de problemas binários)
+cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# Somando todos os valores das 7 colunas para calcular o total de problemas
+total_problemas = df_merged[cols_of_interest].sum().sum()
+
+# Calculando a proporção de cada problema em relação ao total de problemas
+proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
+
+# # Exibindo as proporções em porcentagem
+# print(proporcoes)
+
+# Dicionário para mapear os DDDs aos estados
+ddd_mapping_estados = {
+    61: 'Distrito Federal',
+    62: 'Goiás', 64: 'Goiás',
+    65: 'Mato Grosso', 66: 'Mato Grosso',
+    67: 'Mato Grosso do Sul',
+    82: 'Alagoas',
+    71: 'Bahia', 73: 'Bahia', 74: 'Bahia', 75: 'Bahia', 77: 'Bahia',
+    85: 'Ceará', 88: 'Ceará',
+    98: 'Maranhão', 99: 'Maranhão',
+    83: 'Paraíba',
+    81: 'Pernambuco', 87: 'Pernambuco',
+    86: 'Piauí', 89: 'Piauí',
+    84: 'Rio Grande do Norte',
+    79: 'Sergipe',
+    68: 'Acre',
+    96: 'Amapá',
+    92: 'Amazonas', 97: 'Amazonas',
+    91: 'Pará', 93: 'Pará', 94: 'Pará',
+    69: 'Rondônia',
+    95: 'Roraima',
+    63: 'Tocantins',
+    27: 'Espírito Santo', 28: 'Espírito Santo',
+    31: 'Minas Gerais', 32: 'Minas Gerais', 33: 'Minas Gerais', 34: 'Minas Gerais',
+    35: 'Minas Gerais', 37: 'Minas Gerais', 38: 'Minas Gerais',
+    21: 'Rio de Janeiro', 22: 'Rio de Janeiro', 24: 'Rio de Janeiro',
+    11: 'São Paulo', 12: 'São Paulo', 13: 'São Paulo', 14: 'São Paulo',
+    15: 'São Paulo', 16: 'São Paulo', 17: 'São Paulo', 18: 'São Paulo', 19: 'São Paulo',
+    41: 'Paraná', 42: 'Paraná', 43: 'Paraná', 44: 'Paraná', 45: 'Paraná', 46: 'Paraná',
+    51: 'Rio Grande do Sul', 53: 'Rio Grande do Sul', 54: 'Rio Grande do Sul', 55: 'Rio Grande do Sul',
+    47: 'Santa Catarina', 48: 'Santa Catarina', 49: 'Santa Catarina'
+}
+
+# Função para garantir que o DDD é numérico e tratar erros
+def tratar_ddd(ddd):
+    try:
+        return int(ddd)
+    except ValueError:
+        return None
+
+# Tratando os valores de DDD
+df_merged['DDD'] = df_merged['DDD'].apply(tratar_ddd)
+
+# Aplicar o mapeamento de DDDs para Estados usando .loc para evitar SettingWithCopyWarning
+df_merged.loc[:, 'Estado'] = df_merged['DDD'].map(ddd_mapping_estados)
+
+# # Exibindo os primeiros resultados para verificar se a mudança foi aplicada corretamente
+# print(df_merged[['DDD', 'Estado']].head())
+
+# df_merged
+
+import pandas as pd
+
+# Convertendo a coluna 'Data Inscrição' para o formato datetime
+df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
+
+# Exibindo as primeiras linhas para confirmar a conversão
+# df_merged[['Data Inscrição']]
 
 # # Mostrar as colunas do df_tudao
 # print("Colunas presentes no df_tudao:")
@@ -221,149 +400,116 @@ df_pipedrive_dup.drop('title', axis=1, inplace=True)
 # # Conferir se a operação foi realizada corretamente
 # print(df_pipedrive_dup.head())
 
-# Supondo que você já tenha df_endpoint_dup e df_pipedrive_dup
+# Selecionando as colunas 'numero_wpp' e 'lost reason' do df_pipedrive_dup
+df_separado = df_pipedrive_dup[['numero_wpp', 'lost_reason']]
 
-# Passo 1: Remover duplicatas no numero_wpp para evitar dados inconsistentes
-df_endpoint_dup_clean = df_endpoint_dup.drop_duplicates(subset='numero_wpp')
-df_pipedrive_dup_clean = df_pipedrive_dup.drop_duplicates(subset='numero_wpp')
+# Dropping duplicate 'numero_wpp' values in df_separado, keeping the first occurrence
+df_separado_unique = df_separado.drop_duplicates(subset='numero_wpp', keep='first')
+# Perform the merge again after handling duplicates
+df_merged = pd.merge(df_merged, df_separado_unique, on='numero_wpp', how='left')
 
-# Passo 2: Realizar o merge com base no numero_wpp (inner join para manter apenas os números em comum)
-df_merged = pd.merge(df_pipedrive_dup_clean, df_endpoint_dup_clean, on='numero_wpp', how='inner', suffixes=('_pipedrive', '_endpoint'))
-
-# Passo 3: Reorganizar as colunas para que 'numero_wpp' seja a primeira
-cols = ['numero_wpp'] + [col for col in df_merged.columns if col != 'numero_wpp']
-df_merged = df_merged[cols]
-
-# Passo 4: Igualar os valores da coluna 'deal_id' aos valores da coluna 'pipedrive_deal_id'
-df_merged['deal_id'] = df_merged['pipedrive_deal_id']
-
-# Exibir o dataframe resultante para verificar a mudança
 # df_merged
 
-# Supondo que já temos o df_merged e o df_etiquetas_dup carregados
+# Calculando a soma de cada valor único na coluna 'lost reason'
+lost_reason_counts = df_merged['lost_reason'].value_counts()
 
-# 1. Certificar-se de que a coluna 'numero_wpp' está formatada corretamente em ambos os dataframes
-df_merged['numero_wpp'] = df_merged['numero_wpp'].astype(str)
-df_etiquetas_dup['numero_wpp'] = df_etiquetas_dup['numero_wpp'].astype(str)
+# # Exibindo o resultado
+# print(lost_reason_counts)
 
-# 2. Realizar o merge com base na coluna 'numero_wpp', mantendo apenas os números que já existem no df_merged
-df_final = pd.merge(df_merged, df_etiquetas_dup, on='numero_wpp', how='left')
+# Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
+df_merged = df_merged.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
 
-# # 3. Exibir o resultado para verificar se a junção foi realizada corretamente
-# df_final
+# # Supondo que você já tenha df_endpoint_dup e df_pipedrive_dup
 
-# Também podemos verificar a quantidade de linhas para garantir que o merge foi feito corretamente:
-print(f"Quantidade de pessoas no df_final: {df_final['numero_wpp'].nunique()}")
+# # Passo 1: Remover duplicatas no numero_wpp para evitar dados inconsistentes
+# df_endpoint_dup_clean = df_endpoint_dup.drop_duplicates(subset='numero_wpp')
+# df_pipedrive_dup_clean = df_pipedrive_dup.drop_duplicates(subset='numero_wpp')
 
-# Remover todas as linhas onde o valor na coluna 'POSSÍVEL' seja NaN
-df_final_limpo = df_final.dropna(subset=['POSSÍVEL'])
+# # Passo 2: Realizar o merge com base no numero_wpp (inner join para manter apenas os números em comum)
+# df_merged = pd.merge(df_pipedrive_dup_clean, df_endpoint_dup_clean, on='numero_wpp', how='inner', suffixes=('_pipedrive', '_endpoint'))
 
-# Exibir as primeiras linhas do DataFrame resultante para verificação
-# df_final_limpo
+# # Passo 3: Reorganizar as colunas para que 'numero_wpp' seja a primeira
+# cols = ['numero_wpp'] + [col for col in df_merged.columns if col != 'numero_wpp']
+# df_merged = df_merged[cols]
 
-# Certificar que estamos trabalhando com uma cópia do DataFrame para evitar o SettingWithCopyWarning
-df_final_limpo = df_final_limpo.copy()
+# # Passo 4: Igualar os valores da coluna 'deal_id' aos valores da coluna 'pipedrive_deal_id'
+# df_merged['deal_id'] = df_merged['pipedrive_deal_id']
 
-# Dicionário para mapear os DDDs aos estados
-ddd_mapping_estados = {
-    61: 'Distrito Federal',
-    62: 'Goiás', 64: 'Goiás',
-    65: 'Mato Grosso', 66: 'Mato Grosso',
-    67: 'Mato Grosso do Sul',
-    82: 'Alagoas',
-    71: 'Bahia', 73: 'Bahia', 74: 'Bahia', 75: 'Bahia', 77: 'Bahia',
-    85: 'Ceará', 88: 'Ceará',
-    98: 'Maranhão', 99: 'Maranhão',
-    83: 'Paraíba',
-    81: 'Pernambuco', 87: 'Pernambuco',
-    86: 'Piauí', 89: 'Piauí',
-    84: 'Rio Grande do Norte',
-    79: 'Sergipe',
-    68: 'Acre',
-    96: 'Amapá',
-    92: 'Amazonas', 97: 'Amazonas',
-    91: 'Pará', 93: 'Pará', 94: 'Pará',
-    69: 'Rondônia',
-    95: 'Roraima',
-    63: 'Tocantins',
-    27: 'Espírito Santo', 28: 'Espírito Santo',
-    31: 'Minas Gerais', 32: 'Minas Gerais', 33: 'Minas Gerais', 34: 'Minas Gerais',
-    35: 'Minas Gerais', 37: 'Minas Gerais', 38: 'Minas Gerais',
-    21: 'Rio de Janeiro', 22: 'Rio de Janeiro', 24: 'Rio de Janeiro',
-    11: 'São Paulo', 12: 'São Paulo', 13: 'São Paulo', 14: 'São Paulo',
-    15: 'São Paulo', 16: 'São Paulo', 17: 'São Paulo', 18: 'São Paulo', 19: 'São Paulo',
-    41: 'Paraná', 42: 'Paraná', 43: 'Paraná', 44: 'Paraná', 45: 'Paraná', 46: 'Paraná',
-    51: 'Rio Grande do Sul', 53: 'Rio Grande do Sul', 54: 'Rio Grande do Sul', 55: 'Rio Grande do Sul',
-    47: 'Santa Catarina', 48: 'Santa Catarina', 49: 'Santa Catarina'
-}
+# # Exibir o dataframe resultante para verificar a mudança
+# # df_merged
 
-# Função para garantir que o DDD é numérico e tratar erros
-def tratar_ddd(ddd):
-    try:
-        return int(ddd)
-    except ValueError:
-        return None
+# # Supondo que já temos o df_merged e o df_etiquetas_dup carregados
 
-# Tratando os valores de DDD
-df_final_limpo['DDD'] = df_final_limpo['DDD'].apply(tratar_ddd)
+# # 1. Certificar-se de que a coluna 'numero_wpp' está formatada corretamente em ambos os dataframes
+# df_merged['numero_wpp'] = df_merged['numero_wpp'].astype(str)
+# df_etiquetas_dup['numero_wpp'] = df_etiquetas_dup['numero_wpp'].astype(str)
 
-# Aplicar o mapeamento de DDDs para Estados usando .loc para evitar SettingWithCopyWarning
-df_final_limpo.loc[:, 'Estado'] = df_final_limpo['DDD'].map(ddd_mapping_estados)
+# # 2. Realizar o merge com base na coluna 'numero_wpp', mantendo apenas os números que já existem no df_merged
+# df_final = pd.merge(df_merged, df_etiquetas_dup, on='numero_wpp', how='left')
 
-# Exibindo os primeiros resultados para verificar se a mudança foi aplicada corretamente
-print(df_final_limpo[['DDD', 'Estado']].head())
+# # # 3. Exibir o resultado para verificar se a junção foi realizada corretamente
+# # df_final
 
-# Certificar que estamos trabalhando com uma cópia do DataFrame para evitar o SettingWithCopyWarning
-df_final_limpo = df_final_limpo.copy()
+# # Também podemos verificar a quantidade de linhas para garantir que o merge foi feito corretamente:
+# print(f"Quantidade de pessoas no df_final: {df_final['numero_wpp'].nunique()}")
 
-# Dicionário para mapear os DDDs aos estados
-ddd_mapping_estados = {
-    61: 'Distrito Federal',
-    62: 'Goiás', 64: 'Goiás',
-    65: 'Mato Grosso', 66: 'Mato Grosso',
-    67: 'Mato Grosso do Sul',
-    82: 'Alagoas',
-    71: 'Bahia', 73: 'Bahia', 74: 'Bahia', 75: 'Bahia', 77: 'Bahia',
-    85: 'Ceará', 88: 'Ceará',
-    98: 'Maranhão', 99: 'Maranhão',
-    83: 'Paraíba',
-    81: 'Pernambuco', 87: 'Pernambuco',
-    86: 'Piauí', 89: 'Piauí',
-    84: 'Rio Grande do Norte',
-    79: 'Sergipe',
-    68: 'Acre',
-    96: 'Amapá',
-    92: 'Amazonas', 97: 'Amazonas',
-    91: 'Pará', 93: 'Pará', 94: 'Pará',
-    69: 'Rondônia',
-    95: 'Roraima',
-    63: 'Tocantins',
-    27: 'Espírito Santo', 28: 'Espírito Santo',
-    31: 'Minas Gerais', 32: 'Minas Gerais', 33: 'Minas Gerais', 34: 'Minas Gerais',
-    35: 'Minas Gerais', 37: 'Minas Gerais', 38: 'Minas Gerais',
-    21: 'Rio de Janeiro', 22: 'Rio de Janeiro', 24: 'Rio de Janeiro',
-    11: 'São Paulo', 12: 'São Paulo', 13: 'São Paulo', 14: 'São Paulo',
-    15: 'São Paulo', 16: 'São Paulo', 17: 'São Paulo', 18: 'São Paulo', 19: 'São Paulo',
-    41: 'Paraná', 42: 'Paraná', 43: 'Paraná', 44: 'Paraná', 45: 'Paraná', 46: 'Paraná',
-    51: 'Rio Grande do Sul', 53: 'Rio Grande do Sul', 54: 'Rio Grande do Sul', 55: 'Rio Grande do Sul',
-    47: 'Santa Catarina', 48: 'Santa Catarina', 49: 'Santa Catarina'
-}
+# # Remover todas as linhas onde o valor na coluna 'POSSÍVEL' seja NaN
+# df_final_limpo = df_final.dropna(subset=['POSSÍVEL'])
 
-# Função para garantir que o DDD é numérico e tratar erros
-def tratar_ddd(ddd):
-    try:
-        return int(ddd)
-    except ValueError:
-        return None
+# # Exibir as primeiras linhas do DataFrame resultante para verificação
+# # df_final_limpo
 
-# Tratando os valores de DDD
-df_tudao2['DDD'] = df_tudao2['DDD'].apply(tratar_ddd)
+# # Certificar que estamos trabalhando com uma cópia do DataFrame para evitar o SettingWithCopyWarning
+# df_final_limpo = df_final_limpo.copy()
 
-# Aplicar o mapeamento de DDDs para Estados usando .loc para evitar SettingWithCopyWarning
-df_tudao2.loc[:, 'Estado'] = df_tudao2['DDD'].map(ddd_mapping_estados)
+# # Dicionário para mapear os DDDs aos estados
+# ddd_mapping_estados = {
+#     61: 'Distrito Federal',
+#     62: 'Goiás', 64: 'Goiás',
+#     65: 'Mato Grosso', 66: 'Mato Grosso',
+#     67: 'Mato Grosso do Sul',
+#     82: 'Alagoas',
+#     71: 'Bahia', 73: 'Bahia', 74: 'Bahia', 75: 'Bahia', 77: 'Bahia',
+#     85: 'Ceará', 88: 'Ceará',
+#     98: 'Maranhão', 99: 'Maranhão',
+#     83: 'Paraíba',
+#     81: 'Pernambuco', 87: 'Pernambuco',
+#     86: 'Piauí', 89: 'Piauí',
+#     84: 'Rio Grande do Norte',
+#     79: 'Sergipe',
+#     68: 'Acre',
+#     96: 'Amapá',
+#     92: 'Amazonas', 97: 'Amazonas',
+#     91: 'Pará', 93: 'Pará', 94: 'Pará',
+#     69: 'Rondônia',
+#     95: 'Roraima',
+#     63: 'Tocantins',
+#     27: 'Espírito Santo', 28: 'Espírito Santo',
+#     31: 'Minas Gerais', 32: 'Minas Gerais', 33: 'Minas Gerais', 34: 'Minas Gerais',
+#     35: 'Minas Gerais', 37: 'Minas Gerais', 38: 'Minas Gerais',
+#     21: 'Rio de Janeiro', 22: 'Rio de Janeiro', 24: 'Rio de Janeiro',
+#     11: 'São Paulo', 12: 'São Paulo', 13: 'São Paulo', 14: 'São Paulo',
+#     15: 'São Paulo', 16: 'São Paulo', 17: 'São Paulo', 18: 'São Paulo', 19: 'São Paulo',
+#     41: 'Paraná', 42: 'Paraná', 43: 'Paraná', 44: 'Paraná', 45: 'Paraná', 46: 'Paraná',
+#     51: 'Rio Grande do Sul', 53: 'Rio Grande do Sul', 54: 'Rio Grande do Sul', 55: 'Rio Grande do Sul',
+#     47: 'Santa Catarina', 48: 'Santa Catarina', 49: 'Santa Catarina'
+# }
 
-# Exibindo os primeiros resultados para verificar se a mudança foi aplicada corretamente
-print(df_tudao2[['DDD', 'Estado']].head())
+# # Função para garantir que o DDD é numérico e tratar erros
+# def tratar_ddd(ddd):
+#     try:
+#         return int(ddd)
+#     except ValueError:
+#         return None
+
+# # Tratando os valores de DDD
+# df_final_limpo['DDD'] = df_final_limpo['DDD'].apply(tratar_ddd)
+
+# # Aplicar o mapeamento de DDDs para Estados usando .loc para evitar SettingWithCopyWarning
+# df_final_limpo.loc[:, 'Estado'] = df_final_limpo['DDD'].map(ddd_mapping_estados)
+
+# # Exibindo os primeiros resultados para verificar se a mudança foi aplicada corretamente
+# print(df_final_limpo[['DDD', 'Estado']].head())
 
 # # Criando o mapeamento correto para renomear os valores de 'stage_id' de números para strings
 # stage_mapping = {
@@ -378,1077 +524,14 @@ print(df_tudao2[['DDD', 'Estado']].head())
 # # # Verifique se o mapeamento foi aplicado corretamente
 # # print(df_final_limpo['stage_id'].unique())
 
-# Identificar as colunas que possuem 100% de valores nulos
-cols_to_drop = df_final_limpo.columns[df_final_limpo.isnull().sum() == len(df_final_limpo)]
+# # Identificar as colunas que possuem 100% de valores nulos
+# cols_to_drop = df_final_limpo.columns[df_final_limpo.isnull().sum() == len(df_final_limpo)]
 
-# Dropar as colunas identificadas
-df_final_limpo = df_final_limpo.drop(columns=cols_to_drop)
+# # Dropar as colunas identificadas
+# df_final_limpo = df_final_limpo.drop(columns=cols_to_drop)
 
-# Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
-df_final_limpo = df_final_limpo.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
-
-# import dash
-# from dash import dcc, html
-# import dash_bootstrap_components as dbc
-# import plotly.express as px
-# import pandas as pd
-# from dash.dependencies import Input, Output
-
-# # Utilizando a base de dados df_final_limpo, df_tudao, df_contratog e df_contratoh já carregadas
-# df = df_final_limpo
-# df_tudao = df_tudao2
-# df_contratog = df_contratog
-# df_contratoh = df_contratoh
-
-# # Converter as colunas de data para o tipo datetime
-# df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
-# df_tudao['Data Inscrição'] = pd.to_datetime(df_tudao['Data Inscrição'], errors='coerce')
-
-# # Calcular a média de pessoas por dia
-# total_pessoas = df_tudao['numero_wpp'].nunique()
-# total_dias = df_tudao['Data Inscrição'].nunique()
-# media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
-
-# # Inicializar o aplicativo Dash
-# app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
-
-# # Estilos personalizados para os cards
-# CARD_STYLE = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#007bff",  # Fundo azul para o card da média
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card vermelho (Total de pessoas)
-# CARD_STYLE_RED = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#ff4d4d",  # Fundo vermelho
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilos personalizados
-# SIDEBAR_STYLE = {
-#     "position": "fixed",
-#     "top": 0,
-#     "left": 0,
-#     "bottom": 0,
-#     "width": "20%",
-#     "padding": "20px",
-#     "background-color": "#343a40",  # Cor da barra lateral (cinza escuro)
-# }
-
-# CONTENT_STYLE = {
-#     "margin-left": "20%",
-#     "padding": "20px",
-#     "background-color": "#f8f9fa",  # Cor da parte central/direita (cinza claro)
-#     "text-align": "center"  # Centralizar o texto
-# }
-
-# # Layout da barra lateral
-# sidebar = html.Div(
-#     [
-#         html.H2("Dashboard", className="display-6", style={"color": "white"}),
-#         html.Hr(),
-#         html.P("Solucionaí", className="lead", style={"color": "white"}),
-#         dbc.Nav(
-#             [
-#                 dbc.NavLink("Home", href="/home", id="home-button", style={"color": "white"}),
-#                 dbc.NavLink("Leads", href="/leads", id="leads-button", style={"color": "white"}),
-#                 dbc.NavLink("Atendentes", href="/atendentes", id="atendentes-button", style={"color": "white"}),
-#             ],
-#             vertical=True,
-#             pills=True,
-#         ),
-#     ],
-#     style=SIDEBAR_STYLE,
-# )
-
-# # Layout da parte central/direita
-# content = html.Div(
-#     [
-#         html.H2("Dashboard de Dados Solucionaí", className="display-4"),
-#         html.Hr(),
-#         html.Div(id="page-content"),
-#     ],
-#     style=CONTENT_STYLE,
-# )
-
-# # Layout principal combinando a barra lateral e o conteúdo
-# app.layout = html.Div([sidebar, content])
-
-# # Callback para atualizar o conteúdo da página
-# @app.callback(
-#     Output("page-content", "children"),
-#     [Input("home-button", "n_clicks"),
-#      Input("leads-button", "n_clicks"),
-#      Input("atendentes-button", "n_clicks")]
-# )
-# def display_page(n_home, n_leads, n_atendentes):
-#     ctx = dash.callback_context  # Verificar qual botão foi clicado
-#     filtered_df_tudao = df_tudao  # Filtrar df_tudao
-#     filtered_df = df  # Filtrar df_final_limpo para os outros gráficos
-
-#     if not ctx.triggered:
-#         return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#     else:
-#         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#         if button_id == "home-button":
-#             return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#         elif button_id == "leads-button":
-#             try:
-#                 # Dropdown para selecionar o problema
-#                 dropdown_problema = dcc.Dropdown(
-#                     id='problema-dropdown',
-#                     options=[{'label': problema, 'value': problema} for problema in filtered_df['PROBLEMA'].unique()],
-#                     value=filtered_df['PROBLEMA'].unique()[0] if not filtered_df.empty else None,
-#                     clearable=False,
-#                     style={'width': '50%', 'margin-bottom': '20px'}
-#                 )
-
-#                 # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
-#                 leads_by_date = df_tudao.groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
-#                                           labels={'x': 'Data', 'y': 'Número de Leads'})
-
-#                 # Adicionar números no gráfico para cada ponto
-#                 fig_total_leads.add_scatter(x=leads_by_date.index, y=leads_by_date.values, mode='text',
-#                                             text=leads_by_date.values, textposition="top center", showlegend=False)
-
-#                 # Ajustando o range do eixo x para que não haja espaços no início e no final
-#                 fig_total_leads.update_layout(
-#                     xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()])
-#                 )
-
-#                 # Card com a média de pessoas por dia (card azul)
-#                 card_blue = html.Div([
-#                     html.H4("Média de Pessoas por Dia", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE)
-
-#                 # Card com o total de pessoas (card vermelho)
-#                 card_red = html.Div([
-#                     html.H4("Total de Pessoas na Base", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_RED)
-
-#                 # Exibir informações de leads captados e proporção por problema selecionado
-#                 leads_captados_total = len(df_tudao['numero_wpp'].unique())
-#                 leads_captados_problema = len(filtered_df[filtered_df['PROBLEMA'] == dropdown_problema.value]['numero_wpp'].unique())
-#                 proporcao_leads_problema = (leads_captados_problema / leads_captados_total * 100) if leads_captados_total > 0 else 0
-
-#                 leads_info = html.Div([
-#                     html.H4(f"Leads Captados no Problema Selecionado: {leads_captados_problema}"),
-#                     html.H4(f"Proporção de Leads no Problema Selecionado: {proporcao_leads_problema:.2f}%")
-#                 ], style={'text-align': 'left', 'margin': '20px 0'})
-
-#                 # 2. Leads Cadastrados na Base por Tipo de Problema
-#                 leads_by_problem = df['PROBLEMA'].value_counts()
-#                 fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values, title="Leads por Tipo de Problema",
-#                                             labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
-
-#                 # 3. Leads Cadastrados por Região ou DDD
-#                 leads_by_ddd = df_tudao['Estado'].value_counts()
-#                 leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]  # Filtrar para exibir apenas os valores maiores que 9
-#                 fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
-#                                        labels={'x': 'Estado', 'y': 'Contagem de Leads'})
-
-#                 # 4. Leads que Responderam o Fluxo até o Final
-#                 completed_flow = df_tudao[df_tudao['COMPLETOU_O_FLUXO'] == 1].shape[0]
-#                 fig_fluxo_completo = px.pie(values=[completed_flow, df_tudao.shape[0] - completed_flow],
-#                                             names=['Completaram', 'Não Completaram'],
-#                                             title="Leads que Completaram o Fluxo até o Final")
-
-#                 # Gráfico: Contratos Fechados por Período
-#                 contratos_by_date = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
-#                                               labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
-
-#                 # Gráfico: Leads que Não Prosseguiram após o Primeiro Contato
-#                 leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
-#                 fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
-#                                                     names=['Não Prosseguiram', 'Prosseguiram'],
-#                                                     title="Leads que Não Prosseguiram após o Primeiro Contato")
-
-#                 # Gráfico: Motivo de Perda dos Leads Não Elegíveis
-#                 motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
-#                 fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values, title="Motivo de Perda dos Leads Não Elegíveis",
-#                                                  labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
-
-#                 return html.Div([
-#                     dropdown_problema,  # Dropdown para selecionar o problema
-#                     html.Div([dcc.Graph(figure=fig_total_leads),
-#                               html.Div([card_red, card_blue], style={"display": "flex", "flex-direction": "column", "align-items": "center", "gap": "20px"})],  # Os cards agora estão empilhados verticalmente
-#                              style={'display': 'flex', 'align-items': 'flex-start'}),  # Gráfico 1 e Cards
-#                     leads_info,  # Exibir leads captados
-#                     dcc.Graph(figure=fig_leads_problema),  # Gráfico 2: Leads por Tipo de Problema
-#                     dcc.Graph(figure=fig_leads_ddd),  # Gráfico 3: Leads por Região ou DDD
-#                     dcc.Graph(figure=fig_fluxo_completo),  # Gráfico 4: Leads que completaram o fluxo
-#                     dcc.Graph(figure=fig_contratos_tempo),  # Gráfico 5: Contratos fechados por tempo
-#                     dcc.Graph(figure=fig_leads_nao_prosseguiram),  # Gráfico 6: Leads que Não Prosseguiram
-#                     dcc.Graph(figure=fig_motivos_perda_leads)  # Gráfico 7: Motivo de Perda dos Leads Não Elegíveis
-#                 ])
-#             except Exception as e:
-#                 return html.Div(f"Erro ao carregar os dados: {str(e)}")
-
-#         elif button_id == "atendentes-button":
-#             # Supondo que os DataFrames df_gabi, df_hermes, df_contratog, e df_contratoh já estejam carregados
-
-#             # Gráfico 9: Atendimentos por Dia por Atendente
-#             df_gabi['owner_name'] = 'Gabrielle'
-#             df_hermes['owner_name'] = 'Hermes Moriguchi'
-#             df_combined = pd.concat([df_gabi, df_hermes], ignore_index=True)
-#             df_combined['Data Inscrição'] = pd.to_datetime(df_combined['Data Inscrição'], errors='coerce')
-#             df_28 = df_combined[df_combined['Data Inscrição'] >= '2024-08-28']
-#             atendimentos_por_dia = df_28.groupby([df_28['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
-#             fig_atendimentos_por_dia = px.line(atendimentos_por_dia, x='Data Inscrição', y='Atendimentos', color='owner_name',
-#                                                title="Atendimentos por Dia por Atendente",
-#                                                labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
-
-#             # Gráfico 11: Interações por Lead por Atendente
-#             df_filtered_atendentes = filtered_df[filtered_df['owner_name'] != 'Solucionaí']
-#             interacoes_por_lead = df_filtered_atendentes.groupby('owner_name').size()
-#             fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values, title="Total de Interações com Leads por Atendente",
-#                                              labels={'x': 'Atendente', 'y': 'Número de Leads'})
-
-#             # Gráfico 12: Contratos Fechados por Gabrielle e Hermes (Total de valores na coluna "Telefone" de df_contratog e df_contratoh)
-#             total_contratos_gabi = df_contratog['Telefone'].count()
-#             total_contratos_hermes = df_contratoh['Telefone'].count()
-#             fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
-#                                                  y=[total_contratos_gabi, total_contratos_hermes],
-#                                                  title="Contratos Fechados por Atendente",
-#                                                  labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
-
-#             return html.Div([
-#                 dcc.Graph(figure=fig_atendimentos_por_dia),  # Gráfico 9: Atendimentos por Dia por Atendente
-#                 dcc.Graph(figure=fig_interacoes_por_lead),  # Gráfico 11: Interações por Lead por Atendente
-#                 dcc.Graph(figure=fig_contratos_por_atendente)  # Gráfico 12: Contratos Fechados por Gabrielle e Hermes
-#             ])
-
-
-# # Rodar o aplicativo
-# if __name__ == "__main__":
-#     app.run_server(debug=True)
-
-# import dash
-# from dash import dcc, html
-# import dash_bootstrap_components as dbc
-# import plotly.express as px
-# import pandas as pd
-# from dash.dependencies import Input, Output
-
-# # Utilizando a base de dados df_final_limpo, df_tudao, df_contratog e df_contratoh já carregadas
-# df = df_final_limpo
-# df_tudao = df_tudao2
-# df_contratog = df_contratog
-# df_contratoh = df_contratoh
-
-# # Converter as colunas de data para o tipo datetime
-# df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
-# df_tudao['Data Inscrição'] = pd.to_datetime(df_tudao['Data Inscrição'], errors='coerce')
-
-# # Calcular a média de pessoas por dia
-# total_pessoas = df_tudao['numero_wpp'].nunique()
-# total_dias = df_tudao['Data Inscrição'].nunique()
-# media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
-
-# # Calcular total de contratos assinados
-# total_contratos_assinados = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].shape[0]
-
-# # Inicializar o aplicativo Dash
-# app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
-
-# # Estilos personalizados para os cards
-# CARD_STYLE = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#007bff",  # Fundo azul para o card da média
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card vermelho (Total de pessoas)
-# CARD_STYLE_RED = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#ff4d4d",  # Fundo vermelho
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card verde (Total de contratos)
-# CARD_STYLE_GREEN = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#28a745",  # Fundo verde
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilos personalizados
-# SIDEBAR_STYLE = {
-#     "position": "fixed",
-#     "top": 0,
-#     "left": 0,
-#     "bottom": 0,
-#     "width": "20%",
-#     "padding": "20px",
-#     "background-color": "#343a40",  # Cor da barra lateral (cinza escuro)
-# }
-
-# CONTENT_STYLE = {
-#     "margin-left": "20%",
-#     "padding": "20px",
-#     "background-color": "#f8f9fa",  # Cor da parte central/direita (cinza claro)
-#     "text-align": "center"  # Centralizar o texto
-# }
-
-# # Layout da barra lateral
-# sidebar = html.Div(
-#     [
-#         html.H2("Dashboard", className="display-6", style={"color": "white"}),
-#         html.Hr(),
-#         html.P("Solucionaí", className="lead", style={"color": "white"}),
-#         dbc.Nav(
-#             [
-#                 dbc.NavLink("Home", href="/home", id="home-button", style={"color": "white"}),
-#                 dbc.NavLink("Leads", href="/leads", id="leads-button", style={"color": "white"}),
-#                 dbc.NavLink("Atendentes", href="/atendentes", id="atendentes-button", style={"color": "white"}),
-#             ],
-#             vertical=True,
-#             pills=True,
-#         ),
-#     ],
-#     style=SIDEBAR_STYLE,
-# )
-
-# # Layout da parte central/direita
-# content = html.Div(
-#     [
-#         html.H2("Dashboard de Dados Solucionaí", className="display-4"),
-#         html.Hr(),
-#         html.Div(id="page-content"),
-#     ],
-#     style=CONTENT_STYLE,
-# )
-
-# # Layout principal combinando a barra lateral e o conteúdo
-# app.layout = html.Div([sidebar, content])
-
-# # Callback para atualizar o conteúdo da página
-# @app.callback(
-#     Output("page-content", "children"),
-#     [Input("home-button", "n_clicks"),
-#      Input("leads-button", "n_clicks"),
-#      Input("atendentes-button", "n_clicks")]
-# )
-# def display_page(n_home, n_leads, n_atendentes):
-#     ctx = dash.callback_context  # Verificar qual botão foi clicado
-#     filtered_df_tudao = df_tudao  # Filtrar df_tudao
-#     filtered_df = df  # Filtrar df_final_limpo para os outros gráficos
-
-#     if not ctx.triggered:
-#         return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#     else:
-#         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#         if button_id == "home-button":
-#             return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#         elif button_id == "leads-button":
-#             try:
-#                 # # Dropdown para selecionar o problema
-#                 # dropdown_problema = dcc.Dropdown(
-#                 #     id='problema-dropdown',
-#                 #     options=[{'label': problema, 'value': problema} for problema in filtered_df['PROBLEMA'].unique()],
-#                 #     value=filtered_df['PROBLEMA'].unique()[0] if not filtered_df.empty else None,
-#                 #     clearable=False,
-#                 #     style={'width': '50%', 'margin-bottom': '20px'}
-#                 # )
-
-#                 # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
-#                 leads_by_date = df_tudao[df_tudao['Data Inscrição'] >= '2024-08-30'].groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
-#                                           labels={'x': 'Data', 'y': 'Número de Leads'})
-
-
-#                 # Adicionar números no gráfico para cada ponto
-#                 fig_total_leads.add_scatter(x=leads_by_date.index, y=leads_by_date.values, mode='text',
-#                                             text=leads_by_date.values, textposition="top center", showlegend=False)
-
-#                 # Ajustando o range do eixo x para que não haja espaços no início e no final
-#                 fig_total_leads.update_layout(
-#                     xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()])
-#                 )
-
-#                 # Card com a média de pessoas por dia (card azul)
-#                 card_blue = html.Div([
-#                     html.H4("Média de Pessoas por Dia", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE)
-
-#                 # Card com o total de pessoas (card vermelho)
-#                 card_red = html.Div([
-#                     html.H4("Total de Pessoas na Base", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_RED)
-
-#                 # Card com o total de contratos assinados (card verde)
-#                 card_green = html.Div([
-#                     html.H4("Total de Contratos Assinados", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_GREEN)
-
-#                 # Exibir informações de leads captados e proporção por problema selecionado
-#                 leads_captados_total = len(df_tudao['numero_wpp'].unique())
-#                 # leads_captados_problema = len(filtered_df[filtered_df['PROBLEMA'] == dropdown_problema.value]['numero_wpp'].unique())
-#                 # proporcao_leads_problema = (leads_captados_problema / leads_captados_total * 100) if leads_captados_total > 0 else 0
-
-#                 # leads_info = html.Div([
-#                 #     html.H4(f"Leads Captados no Problema Selecionado: {leads_captados_problema}"),
-#                 #     html.H4(f"Proporção de Leads no Problema Selecionado: {proporcao_leads_problema:.2f}%")
-#                 # ], style={'text-align': 'left', 'margin': '20px 0'})
-
-#                 # 2. Leads Cadastrados na Base por Tipo de Problema
-#                 leads_by_problem = df['PROBLEMA'].value_counts()
-#                 fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values, title="Leads por Tipo de Problema",
-#                                             labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
-
-#                 # 3. Leads Cadastrados por Região ou DDD
-#                 leads_by_ddd = df_tudao['Estado'].value_counts()
-#                 leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]  # Filtrar para exibir apenas os valores maiores que 9
-#                 fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
-#                                        labels={'x': 'Estado', 'y': 'Contagem de Leads'})
-
-#                 # 4. Leads que Responderam o Fluxo até o Final
-#                 completed_flow = df_tudao[df_tudao['COMPLETOU_O_FLUXO'] == 1].shape[0]
-#                 fig_fluxo_completo = px.pie(values=[completed_flow, df_tudao.shape[0] - completed_flow],
-#                                             names=['Completaram', 'Não Completaram'],
-#                                             title="Leads que Completaram o Fluxo até o Final")
-
-#                 # Gráfico: Contratos Fechados por Período
-#                 contratos_by_date = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
-#                                               labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
-
-#                 # Gráfico: Leads que Não Prosseguiram após o Primeiro Contato
-#                 leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
-#                 fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
-#                                                     names=['Não Prosseguiram', 'Prosseguiram'],
-#                                                     title="Leads que Não Prosseguiram após o Primeiro Contato")
-
-#                 # Gráfico: Motivo de Perda dos Leads Não Elegíveis
-#                 motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
-#                 fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values, title="Motivo de Perda dos Leads Não Elegíveis",
-#                                                  labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
-
-#                 return html.Div([
-#                     # dropdown_problema,  # Dropdown para selecionar o problema
-#                     html.Div([dcc.Graph(figure=fig_total_leads),
-#                               html.Div([card_red, card_blue, card_green], style={"display": "flex", "flex-direction": "column", "align-items": "center", "gap": "20px"})],  # Os cards agora estão empilhados verticalmente
-#                              style={'display': 'flex', 'align-items': 'flex-start'}),  # Gráfico 1 e Cards
-#                     # leads_info,  # Exibir leads captados
-#                     dcc.Graph(figure=fig_leads_problema),  # Gráfico 2: Leads por Tipo de Problema
-#                     dcc.Graph(figure=fig_leads_ddd),  # Gráfico 3: Leads por Região ou DDD
-#                     dcc.Graph(figure=fig_fluxo_completo),  # Gráfico 4: Leads que completaram o fluxo
-#                     dcc.Graph(figure=fig_contratos_tempo),  # Gráfico 5: Contratos fechados por tempo
-#                     dcc.Graph(figure=fig_leads_nao_prosseguiram),  # Gráfico 6: Leads que Não Prosseguiram
-#                     dcc.Graph(figure=fig_motivos_perda_leads)  # Gráfico 7: Motivo de Perda dos Leads Não Elegíveis
-#                 ])
-#             except Exception as e:
-#                 return html.Div(f"Erro ao carregar os dados: {str(e)}")
-
-#         elif button_id == "atendentes-button":
-#             # Supondo que os DataFrames df_gabi, df_hermes, df_contratog, e df_contratoh já estejam carregados
-
-#             # Gráfico 9: Atendimentos por Dia por Atendente
-#             df_gabi['owner_name'] = 'Gabrielle'
-#             df_hermes['owner_name'] = 'Hermes Moriguchi'
-#             df_combined = pd.concat([df_gabi, df_hermes], ignore_index=True)
-#             df_combined['Data Inscrição'] = pd.to_datetime(df_combined['Data Inscrição'], errors='coerce')
-#             df_28 = df_combined[df_combined['Data Inscrição'] >= '2024-08-30']
-#             atendimentos_por_dia = df_28.groupby([df_28['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
-#             fig_atendimentos_por_dia = px.line(atendimentos_por_dia, x='Data Inscrição', y='Atendimentos', color='owner_name',
-#                                                title="Atendimentos por Dia por Atendente",
-#                                                labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
-
-#             # Gráfico 11: Interações por Lead por Atendente
-#             df_filtered_atendentes = filtered_df[filtered_df['owner_name'] != 'Solucionaí']
-#             interacoes_por_lead = df_filtered_atendentes.groupby('owner_name').size()
-#             fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values, title="Total de Interações com Leads por Atendente",
-#                                              labels={'x': 'Atendente', 'y': 'Número de Leads'})
-
-#             # Gráfico 12: Contratos Fechados por Gabrielle e Hermes (Total de valores na coluna "Telefone" de df_contratog e df_contratoh)
-#             total_contratos_gabi = df_contratog['Telefone'].count()
-#             total_contratos_hermes = df_contratoh['Telefone'].count()
-#             fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
-#                                                  y=[total_contratos_gabi, total_contratos_hermes],
-#                                                  title="Contratos Fechados por Atendente",
-#                                                  labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
-
-#             return html.Div([
-#                 dcc.Graph(figure=fig_atendimentos_por_dia),  # Gráfico 9: Atendimentos por Dia por Atendente
-#                 dcc.Graph(figure=fig_interacoes_por_lead),  # Gráfico 11: Interações por Lead por Atendente
-#                 dcc.Graph(figure=fig_contratos_por_atendente)  # Gráfico 12: Contratos Fechados por Gabrielle e Hermes
-#             ])
-
-
-# # Rodar o aplicativo
-# if __name__ == "__main__":
-#     app.run_server(debug=True)
-
-# import dash
-# from dash import dcc, html
-# import dash_bootstrap_components as dbc
-# import plotly.express as px
-# import pandas as pd
-# from dash.dependencies import Input, Output
-
-# # Utilizando a base de dados df_final_limpo, df_tudao, df_contratog e df_contratoh já carregadas
-# df = df_final_limpo
-# df_tudao = df_tudao2
-# df_contratog = df_contratog
-# df_contratoh = df_contratoh
-
-# # Converter as colunas de data para o tipo datetime
-# df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
-# df_tudao['Data Inscrição'] = pd.to_datetime(df_tudao['Data Inscrição'], errors='coerce')
-
-# # Calcular a média de pessoas por dia
-# total_pessoas = df_tudao['numero_wpp'].nunique()
-# total_dias = df_tudao['Data Inscrição'].nunique()
-# media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
-
-# # Calcular total de contratos assinados
-# total_contratos_assinados = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].shape[0]
-
-# # Inicializar o aplicativo Dash
-# app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
-
-# # Estilos personalizados para os cards
-# CARD_STYLE = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#007bff",  # Fundo azul para o card da média
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card vermelho (Total de pessoas)
-# CARD_STYLE_RED = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#ff4d4d",  # Fundo vermelho
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card verde (Total de contratos)
-# CARD_STYLE_GREEN = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#28a745",  # Fundo verde
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilos personalizados
-# SIDEBAR_STYLE = {
-#     "position": "fixed",
-#     "top": 0,
-#     "left": 0,
-#     "bottom": 0,
-#     "width": "20%",
-#     "padding": "20px",
-#     "background-color": "#343a40",  # Cor da barra lateral (cinza escuro)
-# }
-
-# CONTENT_STYLE = {
-#     "margin-left": "20%",
-#     "padding": "20px",
-#     "background-color": "#f8f9fa",  # Cor da parte central/direita (cinza claro)
-#     "text-align": "center"  # Centralizar o texto
-# }
-
-# # Layout da barra lateral
-# sidebar = html.Div(
-#     [
-#         html.H2("Dashboard", className="display-6", style={"color": "white"}),
-#         html.Hr(),
-#         html.P("Solucionaí", className="lead", style={"color": "white"}),
-#         dbc.Nav(
-#             [
-#                 dbc.NavLink("Home", href="/home", id="home-button", style={"color": "white"}),
-#                 dbc.NavLink("Leads", href="/leads", id="leads-button", style={"color": "white"}),
-#                 dbc.NavLink("Atendentes", href="/atendentes", id="atendentes-button", style={"color": "white"}),
-#             ],
-#             vertical=True,
-#             pills=True,
-#         ),
-#     ],
-#     style=SIDEBAR_STYLE,
-# )
-
-# # Layout da parte central/direita
-# content = html.Div(
-#     [
-#         html.H2("Dashboard de Dados Solucionaí", className="display-4"),
-#         html.Hr(),
-#         html.Div(id="page-content"),
-#     ],
-#     style=CONTENT_STYLE,
-# )
-
-# # Layout principal combinando a barra lateral e o conteúdo
-# app.layout = html.Div([sidebar, content])
-
-# # Callback para atualizar o conteúdo da página
-# @app.callback(
-#     Output("page-content", "children"),
-#     [Input("home-button", "n_clicks"),
-#      Input("leads-button", "n_clicks"),
-#      Input("atendentes-button", "n_clicks")]
-# )
-# def display_page(n_home, n_leads, n_atendentes):
-#     ctx = dash.callback_context  # Verificar qual botão foi clicado
-#     filtered_df_tudao = df_tudao  # Filtrar df_tudao
-#     filtered_df = df  # Filtrar df_final_limpo para os outros gráficos
-
-#     if not ctx.triggered:
-#         return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#     else:
-#         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#         if button_id == "home-button":
-#             return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#         elif button_id == "leads-button":
-#             try:
-#                 # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
-#                 leads_by_date = df_tudao[df_tudao['Data Inscrição'] >= '2024-08-30'].groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
-#                                           labels={'x': 'Data', 'y': 'Número de Leads'})
-
-#                 # Adicionar números no gráfico para cada ponto
-#                 fig_total_leads.add_scatter(x=leads_by_date.index, y=leads_by_date.values, mode='text',
-#                                             text=leads_by_date.values, textposition="top center", showlegend=False)
-
-#                 # Ajustando o range do eixo x para que não haja espaços no início e no final
-#                 fig_total_leads.update_layout(
-#                     xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()])
-#                 )
-
-#                 # Card com a média de pessoas por dia (card azul)
-#                 card_blue = html.Div([
-#                     html.H4("Média de Leads por Dia", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE)
-
-#                 # Card com o total de pessoas (card vermelho)
-#                 card_red = html.Div([
-#                     html.H4("Total de Leads na Base", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_RED)
-
-#                 # Card com o total de contratos assinados (card verde)
-#                 card_green = html.Div([
-#                     html.H4("Total Contratos Assinados", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_GREEN)
-
-#                 # Gráfico: Contratos Fechados por Período
-#                 contratos_by_date = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
-#                                               labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
-
-#                 # Exibir informações de leads captados e proporção por problema selecionado
-#                 leads_captados_total = len(df_tudao['numero_wpp'].unique())
-
-#                 # 2. Leads Cadastrados na Base por Tipo de Problema
-#                 leads_by_problem = df['PROBLEMA'].value_counts()
-#                 fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values, title="Leads por Tipo de Problema",
-#                                             labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
-
-#                 # 3. Leads Cadastrados por Região ou DDD
-#                 leads_by_ddd = df_tudao['Estado'].value_counts()
-#                 leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]  # Filtrar para exibir apenas os valores maiores que 9
-#                 fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
-#                                        labels={'x': 'Estado', 'y': 'Contagem de Leads'})
-
-#                 # 4. Leads que Responderam o Fluxo até o Final
-#                 completed_flow = df_tudao[df_tudao['COMPLETOU_O_FLUXO'] == 1].shape[0]
-#                 fig_fluxo_completo = px.pie(values=[completed_flow, df_tudao.shape[0] - completed_flow],
-#                                             names=['Completaram', 'Não Completaram'],
-#                                             title="Leads que Completaram o Fluxo até o Final")
-
-#                 # Gráfico: Leads que Não Prosseguiram após o Primeiro Contato
-#                 leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
-#                 fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
-#                                                     names=['Não Prosseguiram', 'Prosseguiram'],
-#                                                     title="Leads que Não Prosseguiram após o Primeiro Contato")
-
-#                 # Gráfico: Motivo de Perda dos Leads Não Elegíveis
-#                 motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
-#                 fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values, title="Motivo de Perda dos Leads Não Elegíveis",
-#                                                  labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
-
-#                 # Exibir os gráficos juntos com o card ao lado do gráfico de contratos
-#                 contratos_section = html.Div(
-#                     [
-#                         dcc.Graph(figure=fig_contratos_tempo),
-#                         card_green  # Colocando o card verde ao lado do gráfico de contratos
-#                     ],
-#                     style={'display': 'flex', 'align-items': 'center', 'gap': '20px'}
-#                 )
-
-#                 return html.Div([
-#                     html.Div([dcc.Graph(figure=fig_total_leads),
-#                               html.Div([card_red, card_blue], style={"display": "flex", "flex-direction": "column", "align-items": "center", "gap": "20px"})],
-#                              style={'display': 'flex', 'align-items': 'flex-start'}),
-#                     # Contratos fechados por período com card verde ao lado
-#                     contratos_section,
-#                     dcc.Graph(figure=fig_leads_problema),
-#                     dcc.Graph(figure=fig_leads_ddd),
-#                     dcc.Graph(figure=fig_fluxo_completo),
-#                     dcc.Graph(figure=fig_leads_nao_prosseguiram),
-#                     dcc.Graph(figure=fig_motivos_perda_leads)
-#                 ])
-#             except Exception as e:
-#                 return html.Div(f"Erro ao carregar os dados: {str(e)}")
-
-#         elif button_id == "atendentes-button":
-#             # Gráficos de atendimentos e interações por atendente
-#             df_gabi['owner_name'] = 'Gabrielle'
-#             df_hermes['owner_name'] = 'Hermes Moriguchi'
-#             df_combined = pd.concat([df_gabi, df_hermes], ignore_index=True)
-#             df_combined['Data Inscrição'] = pd.to_datetime(df_combined['Data Inscrição'], errors='coerce')
-#             df_28 = df_combined[df_combined['Data Inscrição'] >= '2024-08-30']
-#             atendimentos_por_dia = df_28.groupby([df_28['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
-#             fig_atendimentos_por_dia = px.line(atendimentos_por_dia, x='Data Inscrição', y='Atendimentos', color='owner_name',
-#                                                title="Atendimentos por Dia por Atendente",
-#                                                labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
-
-#             # Gráfico de interações por lead por atendente
-#             df_filtered_atendentes = filtered_df[filtered_df['owner_name'] != 'Solucionaí']
-#             interacoes_por_lead = df_filtered_atendentes.groupby('owner_name').size()
-#             fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values, title="Total de Interações com Leads por Atendente",
-#                                              labels={'x': 'Atendente', 'y': 'Número de Leads'})
-
-#             # Gráfico de contratos fechados por Gabrielle e Hermes
-#             total_contratos_gabi = df_contratog['Telefone'].count()
-#             total_contratos_hermes = df_contratoh['Telefone'].count()
-#             fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
-#                                                  y=[total_contratos_gabi, total_contratos_hermes],
-#                                                  title="Contratos Fechados por Atendente",
-#                                                  labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
-
-#             return html.Div([
-#                 dcc.Graph(figure=fig_atendimentos_por_dia),
-#                 dcc.Graph(figure=fig_interacoes_por_lead),
-#                 dcc.Graph(figure=fig_contratos_por_atendente)
-#             ])
-
-
-# # Rodar o aplicativo
-# if __name__ == "__main__":
-#     app.run_server(debug=True)
-
-# import dash
-# from dash import dcc, html
-# import dash_bootstrap_components as dbc
-# import plotly.express as px
-# import pandas as pd
-# from dash.dependencies import Input, Output
-
-# # Utilizando a base de dados df_final_limpo, df_tudao, df_contratog e df_contratoh já carregadas
-# df = df_final_limpo
-# df_tudao = df_tudao2
-# df_contratog = df_contratog
-# df_contratoh = df_contratoh
-
-# # Converter as colunas de data para o tipo datetime
-# df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
-# df_tudao['Data Inscrição'] = pd.to_datetime(df_tudao['Data Inscrição'], errors='coerce')
-
-# # Calcular a média de pessoas por dia
-# total_pessoas = df_tudao['numero_wpp'].nunique()
-# total_dias = df_tudao['Data Inscrição'].nunique()
-# media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
-
-# # Calcular total de contratos assinados
-# total_contratos_assinados = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].shape[0]
-
-# # Inicializar o aplicativo Dash
-# app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
-
-# # Estilos personalizados para os cards
-# CARD_STYLE = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#007bff",  # Fundo azul para o card da média
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card vermelho (Total de pessoas)
-# CARD_STYLE_RED = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#ff4d4d",  # Fundo vermelho
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilo personalizado para o card verde (Total de contratos)
-# CARD_STYLE_GREEN = {
-#     "padding": "20px",
-#     "border-radius": "5px",
-#     "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-#     "text-align": "center",
-#     "margin-left": "20px",
-#     "background-color": "#28a745",  # Fundo verde
-#     "color": "white",  # Texto branco
-#     "font-size": "24px",  # Texto maior
-# }
-
-# # Estilos personalizados
-# SIDEBAR_STYLE = {
-#     "position": "fixed",
-#     "top": 0,
-#     "left": 0,
-#     "bottom": 0,
-#     "width": "20%",
-#     "padding": "20px",
-#     "background-color": "#343a40",  # Cor da barra lateral (cinza escuro)
-# }
-
-# CONTENT_STYLE = {
-#     "margin-left": "20%",
-#     "padding": "20px",
-#     "background-color": "#f8f9fa",  # Cor da parte central/direita (cinza claro)
-#     "text-align": "center"  # Centralizar o texto
-# }
-
-# # Layout da barra lateral
-# sidebar = html.Div(
-#     [
-#         html.H2("Dashboard", className="display-6", style={"color": "white"}),
-#         html.Hr(),
-#         html.P("Solucionaí", className="lead", style={"color": "white"}),
-#         dbc.Nav(
-#             [
-#                 dbc.NavLink("Home", href="/home", id="home-button", style={"color": "white"}),
-#                 dbc.NavLink("Leads", href="/leads", id="leads-button", style={"color": "white"}),
-#                 dbc.NavLink("Atendentes", href="/atendentes", id="atendentes-button", style={"color": "white"}),
-#             ],
-#             vertical=True,
-#             pills=True,
-#         ),
-#     ],
-#     style=SIDEBAR_STYLE,
-# )
-
-# # Layout da parte central/direita
-# content = html.Div(
-#     [
-#         html.H2("Dashboard de Dados Solucionaí", className="display-4"),
-#         html.Hr(),
-#         html.Div(id="page-content"),
-#     ],
-#     style=CONTENT_STYLE,
-# )
-
-# # Layout principal combinando a barra lateral e o conteúdo
-# app.layout = html.Div([sidebar, content])
-
-# # Callback para atualizar o conteúdo da página
-# @app.callback(
-#     Output("page-content", "children"),
-#     [Input("home-button", "n_clicks"),
-#      Input("leads-button", "n_clicks"),
-#      Input("atendentes-button", "n_clicks")]
-# )
-# def display_page(n_home, n_leads, n_atendentes):
-#     ctx = dash.callback_context  # Verificar qual botão foi clicado
-#     filtered_df_tudao = df_tudao  # Filtrar df_tudao
-#     filtered_df = df  # Filtrar df_final_limpo para os outros gráficos
-
-#     if not ctx.triggered:
-#         return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#     else:
-#         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-#         if button_id == "home-button":
-#             return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
-#         elif button_id == "leads-button":
-#             try:
-#                 # Dropdown para selecionar o problema
-#                 dropdown_problema = dcc.Dropdown(
-#                     id='problema-dropdown',
-#                     options=[{'label': problema, 'value': problema} for problema in filtered_df['PROBLEMA'].unique()],
-#                     value=filtered_df['PROBLEMA'].unique()[0] if not filtered_df.empty else None,
-#                     clearable=False,
-#                     style={'width': '50%', 'margin-bottom': '20px'}
-#                 )
-
-#                 # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
-#                 leads_by_date = df_tudao.groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
-#                                           labels={'x': 'Data', 'y': 'Número de Leads'})
-
-#                 # Adicionar números no gráfico para cada ponto
-#                 fig_total_leads.add_scatter(x=leads_by_date.index, y=leads_by_date.values, mode='text',
-#                                             text=leads_by_date.values, textposition="top center", showlegend=False)
-
-#                 # Ajustando o range do eixo x para que não haja espaços no início e no final
-#                 fig_total_leads.update_layout(
-#                     xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()])
-#                 )
-
-#                 # Card com a média de pessoas por dia (card azul)
-#                 card_blue = html.Div([
-#                     html.H4("Média de Pessoas por Dia", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE)
-
-#                 # Card com o total de pessoas (card vermelho)
-#                 card_red = html.Div([
-#                     html.H4("Total de Pessoas na Base", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_RED)
-
-#                 # Card com o total de contratos assinados (card verde)
-#                 card_green = html.Div([
-#                     html.H4("Contratos Assinados", style={"margin-bottom": "10px"}),
-#                     html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
-#                 ], style=CARD_STYLE_GREEN)
-
-#                 # Exibir informações de leads captados e proporção por problema selecionado
-#                 leads_captados_total = len(df_tudao['numero_wpp'].unique())
-#                 leads_captados_problema = len(filtered_df[filtered_df['PROBLEMA'] == dropdown_problema.value]['numero_wpp'].unique())
-#                 proporcao_leads_problema = (leads_captados_problema / leads_captados_total * 100) if leads_captados_total > 0 else 0
-
-#                 leads_info = html.Div([
-#                     html.H4(f"Leads Captados no Problema Selecionado: {leads_captados_problema}"),
-#                     html.H4(f"Proporção de Leads no Problema Selecionado: {proporcao_leads_problema:.2f}%")
-#                 ], style={'text-align': 'left', 'margin': '20px 0'})
-
-#                 # 2. Leads Cadastrados na Base por Tipo de Problema
-#                 leads_by_problem = df['PROBLEMA'].value_counts()
-#                 fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values, title="Leads por Tipo de Problema",
-#                                             labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
-
-#                 # 3. Leads Cadastrados por Região ou DDD
-#                 leads_by_ddd = df_tudao['Estado'].value_counts()
-#                 leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]  # Filtrar para exibir apenas os valores maiores que 9
-#                 fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
-#                                        labels={'x': 'Estado', 'y': 'Contagem de Leads'})
-
-#                 # 4. Leads que Responderam o Fluxo até o Final
-#                 completed_flow = df_tudao[df_tudao['COMPLETOU_O_FLUXO'] == 1].shape[0]
-#                 fig_fluxo_completo = px.pie(values=[completed_flow, df_tudao.shape[0] - completed_flow],
-#                                             names=['Completaram', 'Não Completaram'],
-#                                             title="Leads que Completaram o Fluxo até o Final")
-
-#                 # Gráfico: Contratos Fechados por Período
-#                 contratos_by_date = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].groupby(df_tudao['Data Inscrição'].dt.date).size()
-#                 fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
-#                                               labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
-
-#                 # Gráfico: Leads que Não Prosseguiram após o Primeiro Contato
-#                 leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
-#                 fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
-#                                                     names=['Não Prosseguiram', 'Prosseguiram'],
-#                                                     title="Leads que Não Prosseguiram após o Primeiro Contato")
-
-#                 # Gráfico: Motivo de Perda dos Leads Não Elegíveis
-#                 motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
-#                 fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values, title="Motivo de Perda dos Leads Não Elegíveis",
-#                                                  labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
-
-#                 return html.Div([
-#                     dropdown_problema,  # Dropdown para selecionar o problema
-#                     html.Div([dcc.Graph(figure=fig_total_leads),
-#                               html.Div([card_red, card_blue], style={"display": "flex", "flex-direction": "column", "align-items": "center", "gap": "20px"})],  # Os cards vermelho e azul agora estão empilhados
-#                              style={'display': 'flex', 'align-items': 'flex-start'}),  # Gráfico 1 e Cards
-#                     leads_info,  # Exibir leads captados
-#                     dcc.Graph(figure=fig_leads_problema),  # Gráfico 2: Leads por Tipo de Problema
-#                     dcc.Graph(figure=fig_leads_ddd),  # Gráfico 3: Leads por Região ou DDD
-#                     html.Div([dcc.Graph(figure=fig_contratos_tempo),  # Gráfico 5: Contratos fechados por tempo
-#                               card_green], style={"display": "flex", "justify-content": "space-between"}),  # Card verde ao lado do gráfico
-#                     dcc.Graph(figure=fig_fluxo_completo),  # Gráfico 4: Leads que completaram o fluxo
-#                     dcc.Graph(figure=fig_leads_nao_prosseguiram),  # Gráfico 6: Leads que Não Prosseguiram
-#                     dcc.Graph(figure=fig_motivos_perda_leads)  # Gráfico 7: Motivo de Perda dos Leads Não Elegíveis
-#                 ])
-#             except Exception as e:
-#                 return html.Div(f"Erro ao carregar os dados: {str(e)}")
-
-#         elif button_id == "atendentes-button":
-#             # Supondo que os DataFrames df_gabi, df_hermes, df_contratog, e df_contratoh já estejam carregados
-
-#             # Gráfico 9: Atendimentos por Dia por Atendente
-#             df_gabi['owner_name'] = 'Gabrielle'
-#             df_hermes['owner_name'] = 'Hermes Moriguchi'
-#             df_combined = pd.concat([df_gabi, df_hermes], ignore_index=True)
-#             df_combined['Data Inscrição'] = pd.to_datetime(df_combined['Data Inscrição'], errors='coerce')
-#             df_28 = df_combined[df_combined['Data Inscrição'] >= '2024-08-28']
-#             atendimentos_por_dia = df_28.groupby([df_28['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
-#             fig_atendimentos_por_dia = px.line(atendimentos_por_dia, x='Data Inscrição', y='Atendimentos', color='owner_name',
-#                                                title="Atendimentos por Dia por Atendente",
-#                                                labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
-
-#             # Gráfico 11: Interações por Lead por Atendente
-#             df_filtered_atendentes = filtered_df[filtered_df['owner_name'] != 'Solucionaí']
-#             interacoes_por_lead = df_filtered_atendentes.groupby('owner_name').size()
-#             fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values, title="Total de Interações com Leads por Atendente",
-#                                              labels={'x': 'Atendente', 'y': 'Número de Leads'})
-
-#             # Gráfico 12: Contratos Fechados por Gabrielle e Hermes (Total de valores na coluna "Telefone" de df_contratog e df_contratoh)
-#             total_contratos_gabi = df_contratog['Telefone'].count()
-#             total_contratos_hermes = df_contratoh['Telefone'].count()
-#             fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
-#                                                  y=[total_contratos_gabi, total_contratos_hermes],
-#                                                  title="Contratos Fechados por Atendente",
-#                                                  labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
-
-#             return html.Div([
-#                 dcc.Graph(figure=fig_atendimentos_por_dia),  # Gráfico 9: Atendimentos por Dia por Atendente
-#                 dcc.Graph(figure=fig_interacoes_por_lead),  # Gráfico 11: Interações por Lead por Atendente
-#                 dcc.Graph(figure=fig_contratos_por_atendente)  # Gráfico 12: Contratos Fechados por Gabrielle e Hermes
-#             ])
-
-
-# # Rodar o aplicativo
-# if __name__ == "__main__":
-#      app.run_server(debug=True)
+# # Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
+# df_final_limpo = df_final_limpo.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
 
 import dash
 from dash import dcc, html
@@ -1457,78 +540,77 @@ import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
 
-# Utilizando a base de dados df_final_limpo, df_tudao, df_contratog e df_contratoh já carregadas
-df = df_final_limpo
-df_tudao = df_tudao2
-df_contratog = df_contratog
-df_contratoh = df_contratoh
+# Adding Roboto font from Google Fonts and FontAwesome for icons
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
+                                                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css",
+                                                "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"],
+                suppress_callback_exceptions=True)
 
-# Converter as colunas de data para o tipo datetime
-df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
-df_tudao['Data Inscrição'] = pd.to_datetime(df_tudao['Data Inscrição'], errors='coerce')
+# Assuming df_merged is defined and pre-processed with 'Data Inscrição' column in datetime format
+df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
 
-# Calcular a média de pessoas por dia
-total_pessoas = df_tudao['numero_wpp'].nunique()
-total_dias = df_tudao['Data Inscrição'].nunique()
+# Calculate total people and total days
+total_pessoas = df_merged.shape[0]
+total_dias = df_merged['Data Inscrição'].nunique()
 media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
 
-# Calcular total de contratos assinados
-total_contratos_assinados = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].shape[0]
+# Calculate total signed contracts
+total_contratos_assinados = df_merged[df_merged['CONTRATO ASSINADO'] == 1].shape[0]
 
-# Inicializar o aplicativo Dash
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
-
-# Estilos personalizados para os cards
-CARD_STYLE = {
+# Card styles (Updated with FontAwesome icons and new font)
+CARD_STYLE_UPDATED = {
     "padding": "20px",
-    "border-radius": "5px",
-    "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
+    "border-radius": "10px",
+    "box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
     "text-align": "center",
-    "margin-left": "20px",
-    "background-color": "#007bff",  # Fundo azul para o card da média
-    "color": "white",  # Texto branco
-    "font-size": "24px",  # Texto maior
+    "margin": "20px",
+    "background-color": "#f8f9fa",
+    "color": "#343a40",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
 }
 
-# Estilo personalizado para o card vermelho (Total de pessoas) com margem superior de 1 cm
-CARD_STYLE_RED = {
-    "padding": "20px",
-    "border-radius": "5px",
-    "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
-    "text-align": "center",
-    "margin-left": "20px",
-    "margin-top": "1cm",  # Mover 1 cm para baixo
-    "background-color": "#ff4d4d",  # Fundo vermelho
-    "color": "white",  # Texto branco
-    "font-size": "24px",  # Texto maior
-}
-
-# Estilo personalizado para o card azul (Média de pessoas por dia) com margem superior de 1 cm
 CARD_STYLE_BLUE = {
     "padding": "20px",
-    "border-radius": "5px",
-    "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
+    "border-radius": "10px",
+    "box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
     "text-align": "center",
-    "margin-left": "20px",
-    "margin-top": "1cm",  # Mover 1 cm para baixo
-    "background-color": "#007bff",  # Fundo azul
-    "color": "white",  # Texto branco
-    "font-size": "24px",  # Texto maior
+    "margin": "20px",
+    "background-color": "#17a2b8",
+    "color": "white",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
 }
 
-# Estilo personalizado para o card verde (Total de contratos)
 CARD_STYLE_GREEN = {
     "padding": "20px",
-    "border-radius": "5px",
-    "box-shadow": "2px 2px 10px rgba(0, 0, 0, 0.1)",
+    "border-radius": "10px",
+    "box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
     "text-align": "center",
-    "margin-left": "20px",
-    "background-color": "#28a745",  # Fundo verde
-    "color": "white",  # Texto branco
-    "font-size": "24px",  # Texto maior
+    "margin": "20px",
+    "background-color": "#28a745",
+    "color": "white",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
 }
 
-# Estilos personalizados
+# Define metric cards with FontAwesome icons
+card_total_pessoas = html.Div([
+    html.H4([html.I(className="fas fa-users", style={"margin-right": "10px"}), "Total de Pessoas na Base"],
+            style={"margin-bottom": "10px"}),
+    html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
+], style=CARD_STYLE_UPDATED)
+
+card_media_pessoas_dia = html.Div([
+    html.H4([html.I(className="fas fa-calendar-day", style={"margin-right": "10px"}), "Média de Pessoas por Dia"],
+            style={"margin-bottom": "10px"}),
+    html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
+], style=CARD_STYLE_BLUE)
+
+card_contratos_assinados = html.Div([
+    html.H4([html.I(className="fas fa-file-signature", style={"margin-right": "10px"}), "Total de Contratos Assinados"],
+            style={"margin-bottom": "10px"}),
+    html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
+], style=CARD_STYLE_GREEN)
+
+# Sidebar style
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,
@@ -1536,22 +618,23 @@ SIDEBAR_STYLE = {
     "bottom": 0,
     "width": "20%",
     "padding": "20px",
-    "background-color": "#343a40",  # Cor da barra lateral (cinza escuro)
+    "background-color": "#343a40",
 }
 
 CONTENT_STYLE = {
     "margin-left": "20%",
     "padding": "20px",
-    "background-color": "#f8f9fa",  # Cor da parte central/direita (cinza claro)
-    "text-align": "center"  # Centralizar o texto
+    "background-color": "#f8f9fa",
+    "text-align": "center",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
 }
 
-# Layout da barra lateral
+# Sidebar layout
 sidebar = html.Div(
     [
-        html.H2("Dashboard", className="display-6", style={"color": "white"}),
+        html.H2("Dashboard", className="display-6", style={"color": "white", "font-family": "'Roboto', sans-serif"}),
         html.Hr(),
-        html.P("Solucionaí", className="lead", style={"color": "white"}),
+        html.P("Solucionaí", className="lead", style={"color": "white", "font-family": "'Roboto', sans-serif"}),
         dbc.Nav(
             [
                 dbc.NavLink("Home", href="/home", id="home-button", style={"color": "white"}),
@@ -1565,20 +648,31 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-# Layout da parte central/direita
+# Date range picker for filtering the data
+date_picker = html.Div([
+    html.H5("Selecionar Período de Datas", style={"margin-bottom": "10px", "font-family": "'Roboto', sans-serif"}),
+    dcc.DatePickerRange(
+        id='date-picker-range',
+        start_date=df_merged['Data Inscrição'].min().date(),
+        end_date=df_merged['Data Inscrição'].max().date(),
+        display_format='YYYY-MM-DD',
+        style={"margin-bottom": "20px"}
+    )
+])
+
 content = html.Div(
     [
-        html.H2("Dashboard de Dados Solucionaí", className="display-4"),
+        html.H2("Dashboard de Dados Solucionaí", className="display-4", style={"font-family": "'Roboto', sans-serif"}),
         html.Hr(),
+        date_picker,
         html.Div(id="page-content"),
     ],
     style=CONTENT_STYLE,
 )
 
-# Layout principal combinando a barra lateral e o conteúdo
 app.layout = html.Div([sidebar, content])
 
-# Callback para atualizar o conteúdo da página
+# Callback to handle page navigation (buttons)
 @app.callback(
     Output("page-content", "children"),
     [Input("home-button", "n_clicks"),
@@ -1586,142 +680,304 @@ app.layout = html.Div([sidebar, content])
      Input("atendentes-button", "n_clicks")]
 )
 def display_page(n_home, n_leads, n_atendentes):
-    ctx = dash.callback_context  # Verificar qual botão foi clicado
-    filtered_df_tudao = df_tudao  # Filtrar df_tudao
-    filtered_df = df  # Filtrar df_final_limpo para os outros gráficos
-
+    ctx = dash.callback_context
     if not ctx.triggered:
-        return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
+        return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!",
+                       style={"font-family": "'Roboto', sans-serif"})
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
         if button_id == "home-button":
-            return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!")
+            return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!",
+                           style={"font-family": "'Roboto', sans-serif"})
         elif button_id == "leads-button":
-            try:
-                # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
-                leads_by_date = df_tudao[df_tudao['Data Inscrição'] >= '2024-08-30'].groupby(df_tudao['Data Inscrição'].dt.date).size()
-                fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
-                                          labels={'x': 'Data', 'y': 'Número de Leads'})
-
-                # Adicionar números no gráfico para cada ponto
-                fig_total_leads.add_scatter(x=leads_by_date.index, y=leads_by_date.values, mode='text',
-                                            text=leads_by_date.values, textposition="top center", showlegend=False)
-
-                # Ajustando o range do eixo x para que não haja espaços no início e no final
-                fig_total_leads.update_layout(
-                    xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()])
-                )
-
-                # Card com a média de pessoas por dia (card azul)
-                card_blue = html.Div([
-                    html.H4("Média de Pessoas por Dia", style={"margin-bottom": "10px"}),
-                    html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
-                ], style=CARD_STYLE_BLUE)
-
-                # Card com o total de pessoas (card vermelho)
-                card_red = html.Div([
-                    html.H4("Total de Pessoas na Base", style={"margin-bottom": "10px"}),
-                    html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
-                ], style=CARD_STYLE_RED)
-
-                # Card com o total de contratos assinados (card verde)
-                card_green = html.Div([
-                    html.H4("Total de Contratos Assinados", style={"margin-bottom": "10px"}),
-                    html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
-                ], style=CARD_STYLE_GREEN)
-
-                # Gráfico: Contratos Fechados por Período
-                contratos_by_date = df_tudao[df_tudao['CONTRATO ASSINADO'] == 1].groupby(df_tudao['Data Inscrição'].dt.date).size()
-                fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
-                                              labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
-
-                # Exibir informações de leads captados e proporção por problema selecionado
-                leads_captados_total = len(df_tudao['numero_wpp'].unique())
-
-                # 2. Leads Cadastrados na Base por Tipo de Problema
-                leads_by_problem = df['PROBLEMA'].value_counts()
-                fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values, title="Leads por Tipo de Problema",
-                                            labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
-
-                # 3. Leads Cadastrados por Região ou DDD
-                leads_by_ddd = df_tudao['Estado'].value_counts()
-                leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]  # Filtrar para exibir apenas os valores maiores que 9
-                fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
-                                       labels={'x': 'Estado', 'y': 'Contagem de Leads'})
-
-                # 4. Leads que Responderam o Fluxo até o Final
-                completed_flow = df_tudao[df_tudao['COMPLETOU_O_FLUXO'] == 1].shape[0]
-                fig_fluxo_completo = px.pie(values=[completed_flow, df_tudao.shape[0] - completed_flow],
-                                            names=['Completaram', 'Não Completaram'],
-                                            title="Leads que Completaram o Fluxo até o Final")
-
-                # Gráfico: Leads que Não Prosseguiram após o Primeiro Contato
-                leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
-                fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
-                                                    names=['Não Prosseguiram', 'Prosseguiram'],
-                                                    title="Leads que Não Prosseguiram após o Primeiro Contato")
-
-                # Gráfico: Motivo de Perda dos Leads Não Elegíveis
-                motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
-                fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values, title="Motivo de Perda dos Leads Não Elegíveis",
-                                                 labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
-
-                # Exibir os gráficos juntos com o card ao lado do gráfico de contratos
-                contratos_section = html.Div(
-                    [
-                        dcc.Graph(figure=fig_contratos_tempo),
-                        card_green  # Colocando o card verde ao lado do gráfico de contratos
-                    ],
-                    style={'display': 'flex', 'align-items': 'center', 'gap': '20px'}
-                )
-
-                return html.Div([
-                    html.Div([dcc.Graph(figure=fig_total_leads),
-                              html.Div([card_red, card_blue], style={"display": "flex", "flex-direction": "column", "align-items": "center", "gap": "20px"})],
-                             style={'display': 'flex', 'align-items': 'flex-start'}),
-                    # Contratos fechados por período com card verde ao lado
-                    contratos_section,
-                    dcc.Graph(figure=fig_leads_problema),
-                    dcc.Graph(figure=fig_leads_ddd),
-                    dcc.Graph(figure=fig_fluxo_completo),
-                    dcc.Graph(figure=fig_leads_nao_prosseguiram),
-                    dcc.Graph(figure=fig_motivos_perda_leads)
-                ])
-            except Exception as e:
-                return html.Div(f"Erro ao carregar os dados: {str(e)}")
-
+            return html.Div(id='leads-content')
         elif button_id == "atendentes-button":
-            # Gráficos de atendimentos e interações por atendente
-            df_gabi['owner_name'] = 'Gabrielle'
-            df_hermes['owner_name'] = 'Hermes Moriguchi'
-            df_combined = pd.concat([df_gabi, df_hermes], ignore_index=True)
-            df_combined['Data Inscrição'] = pd.to_datetime(df_combined['Data Inscrição'], errors='coerce')
-            df_28 = df_combined[df_combined['Data Inscrição'] >= '2024-08-30']
-            atendimentos_por_dia = df_28.groupby([df_28['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
-            fig_atendimentos_por_dia = px.line(atendimentos_por_dia, x='Data Inscrição', y='Atendimentos', color='owner_name',
-                                               title="Atendimentos por Dia por Atendente",
-                                               labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
+            return html.Div(id='atendentes-content')
 
-            # Gráfico de interações por lead por atendente
-            df_filtered_atendentes = filtered_df[filtered_df['owner_name'] != 'Solucionaí']
-            interacoes_por_lead = df_filtered_atendentes.groupby('owner_name').size()
-            fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values, title="Total de Interações com Leads por Atendente",
-                                             labels={'x': 'Atendente', 'y': 'Número de Leads'})
+# Callback to handle the date range picker and update Leads graphs
+@app.callback(
+    Output("leads-content", "children"),
+    [Input("date-picker-range", "start_date"),
+     Input("date-picker-range", "end_date")]
+)
+def update_leads_content(start_date, end_date):
+    # Convert the date range values to datetime
+    if start_date and end_date:
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+    else:
+        start_date = df_merged['Data Inscrição'].min()
+        end_date = df_merged['Data Inscrição'].max()
 
-            # Gráfico de contratos fechados por Gabrielle e Hermes
-            total_contratos_gabi = df_contratog['Telefone'].count()
-            total_contratos_hermes = df_contratoh['Telefone'].count()
-            fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
-                                                 y=[total_contratos_gabi, total_contratos_hermes],
-                                                 title="Contratos Fechados por Atendente",
-                                                 labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
+    # Filter the DataFrame based on the selected date range
+    filtered_df = df_merged[(df_merged['Data Inscrição'] >= start_date) & (df_merged['Data Inscrição'] <= end_date)]
 
-            return html.Div([
-                dcc.Graph(figure=fig_atendimentos_por_dia),
-                dcc.Graph(figure=fig_interacoes_por_lead),
-                dcc.Graph(figure=fig_contratos_por_atendente)
-            ])
+    # Handle the case where no data is available for the selected range
+    if filtered_df.empty:
+        return html.Div("Nenhum dado disponível para o intervalo selecionado.")
 
+    # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
+    leads_by_date = filtered_df.groupby(filtered_df['Data Inscrição'].dt.date).size()
+    fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
+                              labels={'x': 'Data', 'y': 'Número de Leads'})
+
+    # Styling changes to the line graph with smooth transitions
+    fig_total_leads.update_traces(line=dict(color="#17a2b8", width=1.5, dash="solid"),
+                                  marker=dict(size=6, color="#fd7e14"))
+    fig_total_leads.add_scatter(
+        x=leads_by_date.index,
+        y=leads_by_date.values,
+        mode='markers+text',
+        text=leads_by_date.values,
+        textposition="top center",
+        textfont=dict(size=10),
+        showlegend=False
+    )
+    fig_total_leads.update_layout(
+        xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()]),
+        plot_bgcolor="light grey",
+        margin=dict(l=40, r=40, t=40, b=40),
+        hovermode="x unified",
+        transition=dict(duration=500)  # Add transition duration
+    )
+
+    # Gráfico 2: Contratos Fechados por Período
+    contratos_by_date = filtered_df[filtered_df['CONTRATO ASSINADO'] == 1].groupby(filtered_df['Data Inscrição'].dt.date).size()
+    fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
+                                  labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
+
+    # Styling changes with transitions
+    fig_contratos_tempo.update_traces(line=dict(color="#28a745", width=1.5), marker=dict(size=6, color="#fd7e14"))
+    fig_contratos_tempo.update_layout(
+        plot_bgcolor="light grey",
+        margin=dict(l=40, r=40, t=40, b=40),
+        hovermode="x unified",
+        transition=dict(duration=500)  # Add transition duration
+    )
+
+    # Gráfico 3: Leads por Tipo de Problema
+    leads_by_problem = filtered_df[['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']].sum().sort_values(ascending=False)
+    fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values,
+                                title="Leads por Tipo de Problema",
+                                labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
+
+    fig_leads_problema.update_traces(marker_color="#fd7e14", marker_line_color="#2c3e50", marker_line_width=1.5)
+    fig_leads_problema.update_layout(
+        plot_bgcolor="white",
+        margin=dict(l=40, r=40, t=40, b=40),
+        bargap=0.2
+    )
+
+    # Gráfico 4: Leads por Região ou DDD
+    leads_by_ddd = filtered_df['Estado'].value_counts()
+    leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]
+    fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
+                           labels={'x': 'Estado', 'y': 'Contagem de Leads'})
+
+    fig_leads_ddd.update_traces(marker_color="#17a2b8", marker_line_color="#2c3e50", marker_line_width=1.5)
+    fig_leads_ddd.update_layout(
+        plot_bgcolor="white",
+        margin=dict(l=40, r=40, t=40, b=40),
+        bargap=0.2
+    )
+
+    # Gráfico 5: Leads que Completaram o Fluxo até o Final
+    completed_flow = filtered_df[filtered_df['COMPLETOU_O_FLUXO'] == 1].shape[0]
+    fig_fluxo_completo = px.pie(values=[completed_flow, filtered_df.shape[0] - completed_flow],
+                                names=['Completaram', 'Não Completaram'],
+                                title="Leads que Completaram o Fluxo até o Final")
+
+    fig_fluxo_completo.update_traces(
+        marker=dict(colors=["#007bff", "#ffc107"], line=dict(color='#2c3e50', width=1.5)),
+        textinfo="percent+label",
+        hoverinfo="label+percent",
+        pull=[0.1, 0]
+    )
+    fig_fluxo_completo.update_layout(
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Gráfico 6: Leads que Não Prosseguiram após o Primeiro Contato
+    leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
+    fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
+                                        names=['Não Prosseguiram', 'Prosseguiram'],
+                                        title="Leads que Não Prosseguiram após o Primeiro Contato")
+
+    fig_leads_nao_prosseguiram.update_traces(
+        marker=dict(colors=["#dc3545", "#17a2b8"], line=dict(color='#2c3e50', width=1.5)),
+        textinfo="percent+label",
+        hoverinfo="label+percent",
+        pull=[0.1, 0]
+    )
+    fig_leads_nao_prosseguiram.update_layout(
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Gráfico 6: Leads que Não Prosseguiram após o Primeiro Contato
+    leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
+    fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
+                                        names=['Não Prosseguiram', 'Prosseguiram'],
+                                        title="Leads que Não Prosseguiram após o Primeiro Contato")
+
+    # Styling for pie chart of non-continued leads
+    fig_leads_nao_prosseguiram.update_traces(
+        marker=dict(colors=["#dc3545", "#17a2b8"], line=dict(color='#2c3e50', width=1.5)),
+        textinfo="percent+label",
+        hoverinfo="label+percent",
+        pull=[0.1, 0]
+    )
+    fig_leads_nao_prosseguiram.update_layout(
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Gráfico 7: Motivo de Perda dos Leads Não Elegíveis
+    motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
+
+    # Enhanced styling for "Motivo de Perda dos Leads Não Elegíveis"
+    fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values,
+                                     title="Motivo de Perda dos Leads Não Elegíveis",
+                                     labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
+
+    # Styling with vibrant colors and emphasis
+    fig_motivos_perda_leads.update_traces(marker=dict(color='#ff5733', line=dict(color='#2c3e50', width=1.5)),
+                                          opacity=0.85)
+    fig_motivos_perda_leads.update_layout(
+        plot_bgcolor="white",
+        bargap=0.3,
+        margin=dict(l=40, r=40, t=40, b=40),
+        xaxis_tickangle=-45
+    )
+
+    # Layout with cards placed beside graphs and ensuring responsiveness
+    layout = dbc.Container([
+        # First row: Total Leads graph with two cards to the right
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_total_leads), width=8),
+            dbc.Col([
+                card_total_pessoas,
+                card_media_pessoas_dia
+            ], width=4)
+        ], align="center"),
+
+        # Second row: Contracts signed graph with one card to the right
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_contratos_tempo), width=8),
+            dbc.Col(card_contratos_assinados, width=4)
+        ], align="center"),
+
+        # Third row: Other graphs
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_leads_problema), width=6),
+            dbc.Col(dcc.Graph(figure=fig_leads_ddd), width=6),
+        ]),
+
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_fluxo_completo), width=6),
+            dbc.Col(dcc.Graph(figure=fig_leads_nao_prosseguiram), width=6),
+        ]),
+
+        # Final row: Lead loss reasons
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_motivos_perda_leads), width=12),
+        ]),
+    ], fluid=True)
+
+    return layout
+
+# Callback to handle the date range picker and update Atendentes graphs
+@app.callback(
+    Output("atendentes-content", "children"),
+    [Input("date-picker-range", "start_date"),
+     Input("date-picker-range", "end_date")]
+)
+def update_atendentes_content(start_date, end_date):
+    # Convert the date range values to datetime
+    if start_date and end_date:
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+    else:
+        start_date = df_merged['Data Inscrição'].min()
+        end_date = df_merged['Data Inscrição'].max()
+
+    # Filter the DataFrame based on the selected date range
+    filtered_df = df_merged[(df_merged['Data Inscrição'] >= start_date) &
+                            (df_merged['Data Inscrição'] <= end_date)]
+
+    if filtered_df.empty:
+        return html.Div("Nenhum dado disponível para o intervalo selecionado.")
+
+    # Gráfico 1: Atendimentos por Dia por Atendente
+    filtered_df['owner_name'] = filtered_df['Atribuidos'].map({1: 'Gabrielle', 2: 'Hermes Moriguchi'})
+    atendimentos_por_dia = filtered_df.groupby([filtered_df['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
+    fig_atendimentos_por_dia = px.line(atendimentos_por_dia,
+                                       x='Data Inscrição',
+                                       y='Atendimentos',
+                                       color='owner_name',
+                                       title="Atendimentos por Dia por Atendente",
+                                       labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
+
+    # Styling changes to the line graph with smooth transitions
+    fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"), marker=dict(size=6, color="#fd7e14"))
+    fig_atendimentos_por_dia.add_scatter(
+        x=atendimentos_por_dia['Data Inscrição'],
+        y=atendimentos_por_dia['Atendimentos'],
+        mode='markers+text',
+        text=atendimentos_por_dia['Atendimentos'],
+        textposition="top center",
+        textfont=dict(size=10),
+        showlegend=False
+    )
+    fig_atendimentos_por_dia.update_layout(
+        plot_bgcolor="light grey",
+        margin=dict(l=40, r=40, t=40, b=40),
+        hovermode="x unified",
+        transition=dict(duration=500)  # Add transition duration
+    )
+
+    # Gráfico 2: Total de Interações com Leads por Atendente
+    interacoes_por_lead = filtered_df['owner_name'].value_counts()
+    fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values,
+                                     title="Total de Interações com Leads por Atendente",
+                                     labels={'x': 'Atendente', 'y': 'Número de Leads'})
+
+    fig_interacoes_por_lead.update_traces(marker=dict(color=['#6f42c1', '#28a745'],
+                                                      line=dict(color='white', width=2)),
+                                          opacity=0.85, marker_line_width=2)
+    fig_interacoes_por_lead.update_layout(
+        plot_bgcolor="white",
+        bargap=0.2,
+        margin=dict(l=40, r=40, t=40, b=40),
+        xaxis_tickangle=-45
+    )
+
+    # Gráfico 3: Contratos Fechados por Atendente
+    total_contratos_gabi = filtered_df[(filtered_df['Atribuidos'] == 1) & (filtered_df['Contrato'] == 1)].shape[0]
+    total_contratos_hermes = filtered_df[(filtered_df['Atribuidos'] == 2) & (filtered_df['Contrato'] == 2)].shape[0]
+
+    fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
+                                         y=[total_contratos_gabi, total_contratos_hermes],
+                                         title="Contratos Fechados por Atendente",
+                                         labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
+
+    fig_contratos_por_atendente.update_traces(marker=dict(color=['#6f42c1', '#28a745'],
+                                                          line=dict(color='white', width=1.5)),
+                                              opacity=0.85, marker_line_width=2)
+    fig_contratos_por_atendente.update_layout(
+        plot_bgcolor="white",
+        bargap=0.2,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Return all Atendentes graphs
+    return html.Div([
+        dcc.Graph(figure=fig_atendimentos_por_dia, animate=True),
+        dcc.Graph(figure=fig_interacoes_por_lead, animate=True),
+        dcc.Graph(figure=fig_contratos_por_atendente, animate=True)
+    ])
 
 if __name__ == "__main__":
     app.run_server(debug=True, host='0.0.0.0', port=8080)
+
