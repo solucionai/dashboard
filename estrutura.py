@@ -551,7 +551,7 @@ df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], er
 
 # Calculate total people and total days
 total_pessoas = df_merged.shape[0]
-total_dias = df_merged['Data Inscrição'].nunique()
+total_dias = (df_merged['Data Inscrição'].max() - df_merged['Data Inscrição'].min()).days 
 media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
 
 # Calculate total signed contracts
