@@ -551,7 +551,7 @@ df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], er
 
 # Calculate total people and total days
 total_pessoas = df_merged.shape[0]
-total_dias = (df_merged['Data Inscrição'].max() - df_merged['Data Inscrição'].min()).days 
+total_dias = df_merged['Data Inscrição'].nunique()
 media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
 
 # Calculate total signed contracts
@@ -915,7 +915,7 @@ def update_atendentes_content(start_date, end_date):
     fig_atendimentos_por_dia = px.line(atendimentos_por_dia,
                                        x='Data Inscrição',
                                        y='Atendimentos',
-                                       color='Atendentes',
+                                       color='owner_name',
                                        title="Atendimentos por Dia por Atendente",
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
@@ -927,13 +927,12 @@ def update_atendentes_content(start_date, end_date):
         margin=dict(l=40, r=40, t=40, b=40),
         hovermode="x unified",
         transition=dict(duration=500)  # Keep smooth transitions
-    )
-
+        )
 
     # Gráfico 2: Total de Interações com Leads por Atendente
     interacoes_por_lead = filtered_df['owner_name'].value_counts()
     fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values,
-                                     title="Total de Pessoas Atendidas por Atendente",
+                                     title="Total de Interações com Leads por Atendente",
                                      labels={'x': 'Atendente', 'y': 'Número de Leads'})
 
     fig_interacoes_por_lead.update_traces(marker=dict(color=['#6f42c1', '#28a745'],
@@ -973,4 +972,3 @@ def update_atendentes_content(start_date, end_date):
 
 if __name__ == "__main__":
     app.run_server(debug=True, host='0.0.0.0', port=8080)
-
