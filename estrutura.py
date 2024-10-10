@@ -920,22 +920,15 @@ def update_atendentes_content(start_date, end_date):
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
     # Styling changes to the line graph with smooth transitions
-    fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"), marker=dict(size=6, color="#fd7e14"))
-    fig_atendimentos_por_dia.add_scatter(
-        x=atendimentos_por_dia['Data Inscrição'],
-        y=atendimentos_por_dia['Atendimentos'],
-        mode='markers+text',
-        text=atendimentos_por_dia['Atendimentos'],
-        textposition="top center",
-        textfont=dict(size=10),
-        showlegend=False
-    )
+    # Gráfico 1: Atendimentos por Dia por Atendente (without markers and text)
+    fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))  # No markers here
     fig_atendimentos_por_dia.update_layout(
         plot_bgcolor="light grey",
         margin=dict(l=40, r=40, t=40, b=40),
         hovermode="x unified",
-        transition=dict(duration=500)  # Add transition duration
+        transition=dict(duration=500)  # Keep smooth transitions
     )
+
 
     # Gráfico 2: Total de Interações com Leads por Atendente
     interacoes_por_lead = filtered_df['owner_name'].value_counts()
