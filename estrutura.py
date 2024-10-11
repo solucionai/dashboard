@@ -551,7 +551,7 @@ df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], er
 
 # Calculate total people and total days
 total_pessoas = df_merged.shape[0]
-total_dias = df_merged['Data Inscrição'].nunique()
+total_dias = (df_merged['Data Inscrição'].max() - df_merged['Data Inscrição'].min()).days 
 media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
 
 # Calculate total signed contracts
@@ -935,7 +935,7 @@ def update_atendentes_content(start_date, end_date):
                                      title="Total de Interações com Leads por Atendente",
                                      labels={'x': 'Atendente', 'y': 'Número de Leads'})
 
-    fig_interacoes_por_lead.update_traces(marker=dict(color=['#6f42c1', '#28a745'],
+    fig_interacoes_por_lead.update_traces(marker=dict(color=['#6f42c1', '#FFFF00'],
                                                       line=dict(color='white', width=2)),
                                           opacity=0.85, marker_line_width=2)
     fig_interacoes_por_lead.update_layout(
@@ -954,7 +954,7 @@ def update_atendentes_content(start_date, end_date):
                                          title="Contratos Fechados por Atendente",
                                          labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
 
-    fig_contratos_por_atendente.update_traces(marker=dict(color=['#6f42c1', '#28a745'],
+    fig_contratos_por_atendente.update_traces(marker=dict(color=['#6f42c1', '#FFFF00'],
                                                           line=dict(color='white', width=1.5)),
                                               opacity=0.85, marker_line_width=2)
     fig_contratos_por_atendente.update_layout(
