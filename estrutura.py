@@ -256,67 +256,67 @@ df_merged['Atribuidos'] = df_merged['Atribuidos'].fillna(0)
 
 # df_merged
 
-# Selecionando as colunas de interesse
-cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+# # Selecionando as colunas de interesse
+# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
 
-# Contando quantas linhas têm a soma de 1 nas colunas de interesse
-soma_1_count = (df_merged[cols_of_interest].sum(axis=1) == 1).sum()
+# # Contando quantas linhas têm a soma de 1 nas colunas de interesse
+# soma_1_count = (df_merged[cols_of_interest].sum(axis=1) == 1).sum()
 
-# # Exibindo o resultado
-# print(f"Total de linhas onde a soma é 1: {soma_1_count}")
+# # # Exibindo o resultado
+# # print(f"Total de linhas onde a soma é 1: {soma_1_count}")
 
-# Definindo as colunas de interesse (as colunas de problemas binários)
-cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+# # Definindo as colunas de interesse (as colunas de problemas binários)
+# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
 
-# Somando todos os valores das 7 colunas para calcular o total de problemas
-total_problemas = df_merged[cols_of_interest].sum().sum()
+# # Somando todos os valores das 7 colunas para calcular o total de problemas
+# total_problemas = df_merged[cols_of_interest].sum().sum()
 
-# Calculando a proporção de cada problema em relação ao total de problemas
-proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
+# # Calculando a proporção de cada problema em relação ao total de problemas
+# proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
 
-# # Exibindo as proporções em porcentagem
-# print(proporcoes)
+# # # Exibindo as proporções em porcentagem
+# # print(proporcoes)
 
-# Selecionando as colunas de interesse
-cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+# # Selecionando as colunas de interesse
+# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
 
-# Contando quantas vezes o valor 1 aparece em cada uma das colunas
-occurrences = df_merged[cols_of_interest].sum()
-
-# # Exibindo os resultados
-# print(occurrences)
-
-import numpy as np
-
-# Selecionar as linhas onde a soma das colunas de interesse é 0, 2 ou 3
-mask = df_merged[cols_of_interest].sum(axis=1).isin([0, 2, 3])
-
-# Agora, aplicamos o aumento de problemas com base nas proporções calculadas
-for col in cols_of_interest:
-    # Calculando a quantidade de valores para aumentar com base na proporção
-    num_aumentar = int(proporcoes[col] * mask.sum() / 100)
-
-    # Alterando aleatoriamente os valores de 0 para 1 em colunas específicas
-    indices_aumentar = np.random.choice(df_merged[mask].index, num_aumentar, replace=False)
-    df_merged.loc[indices_aumentar, col] = 1
-
-# Selecionando as colunas de interesse
-cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
-
-# Contando quantas vezes o valor 1 aparece em cada uma das colunas
-occurrences = df_merged[cols_of_interest].sum()
+# # Contando quantas vezes o valor 1 aparece em cada uma das colunas
+# occurrences = df_merged[cols_of_interest].sum()
 
 # # Exibindo os resultados
 # print(occurrences)
 
-# Definindo as colunas de interesse (as colunas de problemas binários)
-cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+# import numpy as np
 
-# Somando todos os valores das 7 colunas para calcular o total de problemas
-total_problemas = df_merged[cols_of_interest].sum().sum()
+# # Selecionar as linhas onde a soma das colunas de interesse é 0, 2 ou 3
+# mask = df_merged[cols_of_interest].sum(axis=1).isin([0, 2, 3])
 
-# Calculando a proporção de cada problema em relação ao total de problemas
-proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
+# # Agora, aplicamos o aumento de problemas com base nas proporções calculadas
+# for col in cols_of_interest:
+#     # Calculando a quantidade de valores para aumentar com base na proporção
+#     num_aumentar = int(proporcoes[col] * mask.sum() / 100)
+
+#     # Alterando aleatoriamente os valores de 0 para 1 em colunas específicas
+#     indices_aumentar = np.random.choice(df_merged[mask].index, num_aumentar, replace=False)
+#     df_merged.loc[indices_aumentar, col] = 1
+
+# # Selecionando as colunas de interesse
+# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# # Contando quantas vezes o valor 1 aparece em cada uma das colunas
+# occurrences = df_merged[cols_of_interest].sum()
+
+# # Exibindo os resultados
+# print(occurrences)
+
+# # Definindo as colunas de interesse (as colunas de problemas binários)
+# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
+
+# # Somando todos os valores das 7 colunas para calcular o total de problemas
+# total_problemas = df_merged[cols_of_interest].sum().sum()
+
+# # Calculando a proporção de cada problema em relação ao total de problemas
+# proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
 
 # # Exibindo as proporções em porcentagem
 # print(proporcoes)
@@ -553,7 +553,7 @@ df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], er
 
 # Calculate total people and total days
 total_pessoas = df_merged.shape[0]
-total_dias = (df_merged['Data Inscrição'].max() - df_merged['Data Inscrição'].min()).days 
+total_dias = (df_merged['Data Inscrição'].max() - df_merged['Data Inscrição'].min()).days
 media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
 
 # Calculate total signed contracts
@@ -631,7 +631,7 @@ CONTENT_STYLE = {
     "font-family": "'Roboto', sans-serif",  # Using the Roboto font
 }
 
-# Sidebar layout
+# Sidebar layout with the new problem filter
 sidebar = html.Div(
     [
         html.H2("Dashboard", className="display-6", style={"color": "white", "font-family": "'Roboto', sans-serif"}),
@@ -646,6 +646,24 @@ sidebar = html.Div(
             vertical=True,
             pills=True,
         ),
+        # New problem filter dropdown added here
+        html.Div([
+            html.H5("Filtrar por Problema", style={"margin-top": "20px", "color": "white", "font-family": "'Roboto', sans-serif"}),
+            dcc.Dropdown(
+                id='problem-filter',
+                options=[
+                    {'label': 'Nenhum', 'value': 'Nenhum'},  # Default option
+                    {'label': 'Outros', 'value': 'Outros'},
+                    {'label': 'Negativação', 'value': 'Negativação'},
+                    {'label': 'Compras Online', 'value': 'Compras Online'},
+                    {'label': 'Serviços Bancários', 'value': 'Serviços Bancários'},
+                    {'label': 'Telefonia', 'value': 'Telefonia'}
+                ],
+                value='Nenhum',  # Default value
+                clearable=False,
+                style={"margin-bottom": "20px"}
+            )
+        ])
     ],
     style=SIDEBAR_STYLE,
 )
@@ -696,13 +714,14 @@ def display_page(n_home, n_leads, n_atendentes):
         elif button_id == "atendentes-button":
             return html.Div(id='atendentes-content')
 
-# Callback to handle the date range picker and update Leads graphs
+# Callback to handle the date range picker and the problem filter, updating Leads graphs
 @app.callback(
     Output("leads-content", "children"),
     [Input("date-picker-range", "start_date"),
-     Input("date-picker-range", "end_date")]
+     Input("date-picker-range", "end_date"),
+     Input("problem-filter", "value")]
 )
-def update_leads_content(start_date, end_date):
+def update_leads_content(start_date, end_date, selected_problem):
     # Convert the date range values to datetime
     if start_date and end_date:
         start_date = pd.to_datetime(start_date)
@@ -713,6 +732,10 @@ def update_leads_content(start_date, end_date):
 
     # Filter the DataFrame based on the selected date range
     filtered_df = df_merged[(df_merged['Data Inscrição'] >= start_date) & (df_merged['Data Inscrição'] <= end_date)]
+
+    # Apply the problem filter if it's not "Nenhum"
+    if selected_problem != "Nenhum":
+        filtered_df = filtered_df[filtered_df[selected_problem] > 0]
 
     # Handle the case where no data is available for the selected range
     if filtered_df.empty:
@@ -757,8 +780,8 @@ def update_leads_content(start_date, end_date):
         transition=dict(duration=500)  # Add transition duration
     )
 
-    # Gráfico 3: Leads por Tipo de Problema
-    leads_by_problem = filtered_df[['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']].sum().sort_values(ascending=False)
+    # Gráfico 3: Leads por Tipo de Problema (não é afetado pelo filtro de problema)
+    leads_by_problem = df_merged[['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']].sum().sort_values(ascending=False)
     fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values,
                                 title="Leads por Tipo de Problema",
                                 labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
@@ -817,24 +840,6 @@ def update_leads_content(start_date, end_date):
         margin=dict(l=40, r=40, t=40, b=40)
     )
 
-    # Gráfico 6: Leads que Não Prosseguiram após o Primeiro Contato
-    leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
-    fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
-                                        names=['Não Prosseguiram', 'Prosseguiram'],
-                                        title="Leads que Não Prosseguiram após o Primeiro Contato")
-
-    # Styling for pie chart of non-continued leads
-    fig_leads_nao_prosseguiram.update_traces(
-        marker=dict(colors=["#dc3545", "#17a2b8"], line=dict(color='#2c3e50', width=1.5)),
-        textinfo="percent+label",
-        hoverinfo="label+percent",
-        pull=[0.1, 0]
-    )
-    fig_leads_nao_prosseguiram.update_layout(
-        showlegend=False,
-        margin=dict(l=40, r=40, t=40, b=40)
-    )
-
     # Gráfico 7: Motivo de Perda dos Leads Não Elegíveis
     motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
 
@@ -843,7 +848,6 @@ def update_leads_content(start_date, end_date):
                                      title="Motivo de Perda dos Leads Não Elegíveis",
                                      labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
 
-    # Styling with vibrant colors and emphasis
     fig_motivos_perda_leads.update_traces(marker=dict(color='#ff5733', line=dict(color='#2c3e50', width=1.5)),
                                           opacity=0.85)
     fig_motivos_perda_leads.update_layout(
@@ -872,7 +876,7 @@ def update_leads_content(start_date, end_date):
 
         # Third row: Other graphs
         dbc.Row([
-            dbc.Col(dcc.Graph(figure=fig_leads_problema), width=6),
+            dbc.Col(dcc.Graph(figure=fig_leads_problema), width=6),  # Excluded from filter
             dbc.Col(dcc.Graph(figure=fig_leads_ddd), width=6),
         ]),
 
@@ -893,9 +897,10 @@ def update_leads_content(start_date, end_date):
 @app.callback(
     Output("atendentes-content", "children"),
     [Input("date-picker-range", "start_date"),
-     Input("date-picker-range", "end_date")]
+     Input("date-picker-range", "end_date"),
+     Input("problem-filter", "value")]
 )
-def update_atendentes_content(start_date, end_date):
+def update_atendentes_content(start_date, end_date, selected_problem):
     # Convert the date range values to datetime
     if start_date and end_date:
         start_date = pd.to_datetime(start_date)
@@ -907,6 +912,10 @@ def update_atendentes_content(start_date, end_date):
     # Filter the DataFrame based on the selected date range
     filtered_df = df_merged[(df_merged['Data Inscrição'] >= start_date) &
                             (df_merged['Data Inscrição'] <= end_date)]
+
+    # Apply the problem filter if it's not "Nenhum"
+    if selected_problem != "Nenhum":
+        filtered_df = filtered_df[filtered_df[selected_problem] > 0]
 
     if filtered_df.empty:
         return html.Div("Nenhum dado disponível para o intervalo selecionado.")
@@ -921,15 +930,13 @@ def update_atendentes_content(start_date, end_date):
                                        title="Atendimentos por Dia por Atendente",
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
-    # Styling changes to the line graph with smooth transitions
-    # Gráfico 1: Atendimentos por Dia por Atendente (without markers and text)
-    fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))  # No markers here
+    fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))
     fig_atendimentos_por_dia.update_layout(
         plot_bgcolor="light grey",
         margin=dict(l=40, r=40, t=40, b=40),
         hovermode="x unified",
-        transition=dict(duration=500)  # Keep smooth transitions
-        )
+        transition=dict(duration=500)
+    )
 
     # Gráfico 2: Total de Interações com Leads por Atendente
     interacoes_por_lead = filtered_df['Atendentes'].value_counts()
