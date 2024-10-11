@@ -655,7 +655,7 @@ date_picker = html.Div([
         id='date-picker-range',
         start_date=df_merged['Data Inscrição'].min().date(),
         end_date=df_merged['Data Inscrição'].max().date(),
-        display_format='YYYY-MM-DD',
+        display_format='DD-MM-YYYY',
         style={"margin-bottom": "20px"}
     )
 ])
