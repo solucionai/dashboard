@@ -540,6 +540,8 @@ import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
 
+df_merged = df_merged.rename(columns={'owner_name': 'Atendentes'})
+
 # Adding Roboto font from Google Fonts and FontAwesome for icons
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
                                                 "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css",
@@ -655,7 +657,7 @@ date_picker = html.Div([
         id='date-picker-range',
         start_date=df_merged['Data Inscrição'].min().date(),
         end_date=df_merged['Data Inscrição'].max().date(),
-        display_format='DD-MM-YYYY',
+        display_format='YYYY-MM-DD',
         style={"margin-bottom": "20px"}
     )
 ])
@@ -910,12 +912,12 @@ def update_atendentes_content(start_date, end_date):
         return html.Div("Nenhum dado disponível para o intervalo selecionado.")
 
     # Gráfico 1: Atendimentos por Dia por Atendente
-    filtered_df['owner_name'] = filtered_df['Atribuidos'].map({1: 'Gabrielle', 2: 'Hermes Moriguchi'})
-    atendimentos_por_dia = filtered_df.groupby([filtered_df['Data Inscrição'].dt.date, 'owner_name']).size().reset_index(name='Atendimentos')
+    filtered_df['Atendentes'] = filtered_df['Atribuidos'].map({1: 'Gabrielle', 2: 'Hermes Moriguchi'})
+    atendimentos_por_dia = filtered_df.groupby([filtered_df['Data Inscrição'].dt.date, 'Atendentes']).size().reset_index(name='Atendimentos')
     fig_atendimentos_por_dia = px.line(atendimentos_por_dia,
                                        x='Data Inscrição',
                                        y='Atendimentos',
-                                       color='owner_name',
+                                       color='Atendentes',
                                        title="Atendimentos por Dia por Atendente",
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
@@ -930,7 +932,7 @@ def update_atendentes_content(start_date, end_date):
         )
 
     # Gráfico 2: Total de Interações com Leads por Atendente
-    interacoes_por_lead = filtered_df['owner_name'].value_counts()
+    interacoes_por_lead = filtered_df['Atendentes'].value_counts()
     fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values,
                                      title="Total de Interações com Leads por Atendente",
                                      labels={'x': 'Atendente', 'y': 'Número de Leads'})
