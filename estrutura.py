@@ -376,8 +376,6 @@ import pandas as pd
 
 # Convertendo a coluna 'Data Inscrição' para o formato datetime
 df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
-# Format 'Data Inscrição' column to 'dd-mm-yyyy'
-df_merged['Data Inscrição'] = df_merged['Data Inscrição'].dt.strftime('%d-%m-%Y')
 
 # Exibindo as primeiras linhas para confirmar a conversão
 # df_merged[['Data Inscrição']]
