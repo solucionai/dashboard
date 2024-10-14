@@ -18,20 +18,25 @@ Utilizamos Plotly Express para criar os gráficos.
 # Estrutura do Dashboard
 1. Pre-processamento dos Dados
 Renomeação de Colunas: A coluna owner_name é renomeada para Atendentes para facilitar a visualização e a manipulação.
+
 Conversão de Datas: A coluna Data Inscrição é convertida para o formato datetime para possibilitar cálculos de tempo.
+
 Cálculos Estatísticos:
 Calcula o total de leads, a diferença de dias entre o primeiro e o último registro de lead e a média de leads por dia.
 Também calcula o total de contratos assinados.
-2. Funções de Visualização
+
+3. Funções de Visualização
 O código contém várias funções que criam gráficos interativos usando Plotly. Algumas delas incluem:
 
 Gráfico de Atendimentos por Dia:
 
 Gera um gráfico de barras que mostra o número de atendimentos realizados por dia para cada atendente.
+
 Gráfico de Interações por Lead:
 
 Exibe o número de interações realizadas com cada lead para cada atendente.
 Usa cores distintas para cada atendente e ajusta o layout visual.
+
 Gráfico de Contratos Fechados por Atendente:
 
 Exibe a quantidade de contratos fechados por atendente, comparando o desempenho entre diferentes membros da equipe.
