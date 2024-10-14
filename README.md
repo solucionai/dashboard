@@ -3,9 +3,13 @@ Este projeto implementa um dashboard interativo para monitorar leads e atendente
 
 # Bibliotecas Importadas
 requests: Usado para fazer solicitações HTTP à API do Pipedrive. (a utilização dessa API foi descontinuada no projeto mas caso queira utilizar o código está pronto).
+
 dash, dcc, html: Usados para a construção da interface do dashboard.
+
 plotly.express: Utilizado para criar gráficos interativos.
+
 pandas: Para manipulação de dados.
+
 flask: Necessário para rodar o dashboard como um serviço web.
 
 # Geração de Visualizações
