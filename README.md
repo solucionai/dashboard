@@ -44,7 +44,7 @@ O código utiliza callbacks do Dash para permitir que os gráficos sejam atualiz
 
 5. Execução do Servidor
 Função Principal:
-A função principal inicializa o servidor Flask e abre o dashboard no endereço ]https://web-production-a7114.up.railway.app/home .
+A função principal inicializa o servidor Flask e abre o dashboard no endereço https://web-production-a7114.up.railway.app/home .
 Usa o modo debug=True para facilitar o desenvolvimento, exibindo erros detalhados quando ocorrem.
 
 # Passo a Passo para Configurar o Projeto
