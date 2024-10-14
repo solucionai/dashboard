@@ -8,8 +8,6 @@ Original file is located at
 
 # Puxando os dados do Analytics
 """
-
-# !pip install google-analytics-data
 # !pip install dash dash-bootstrap-components plotly flask
 
 from google.analytics.data_v1beta import BetaAnalyticsDataClient, RunReportRequest, DateRange, Dimension, Metric
@@ -254,73 +252,6 @@ df_merged['DDD'] = df_merged['DDD'].fillna(0)
 df_merged['Contrato'] = df_merged['Contrato'].fillna(0)
 df_merged['Atribuidos'] = df_merged['Atribuidos'].fillna(0)
 
-# df_merged
-
-# # Selecionando as colunas de interesse
-# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
-
-# # Contando quantas linhas têm a soma de 1 nas colunas de interesse
-# soma_1_count = (df_merged[cols_of_interest].sum(axis=1) == 1).sum()
-
-# # # Exibindo o resultado
-# # print(f"Total de linhas onde a soma é 1: {soma_1_count}")
-
-# # Definindo as colunas de interesse (as colunas de problemas binários)
-# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
-
-# # Somando todos os valores das 7 colunas para calcular o total de problemas
-# total_problemas = df_merged[cols_of_interest].sum().sum()
-
-# # Calculando a proporção de cada problema em relação ao total de problemas
-# proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
-
-# # # Exibindo as proporções em porcentagem
-# # print(proporcoes)
-
-# # Selecionando as colunas de interesse
-# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
-
-# # Contando quantas vezes o valor 1 aparece em cada uma das colunas
-# occurrences = df_merged[cols_of_interest].sum()
-
-# # Exibindo os resultados
-# print(occurrences)
-
-# import numpy as np
-
-# # Selecionar as linhas onde a soma das colunas de interesse é 0, 2 ou 3
-# mask = df_merged[cols_of_interest].sum(axis=1).isin([0, 2, 3])
-
-# # Agora, aplicamos o aumento de problemas com base nas proporções calculadas
-# for col in cols_of_interest:
-#     # Calculando a quantidade de valores para aumentar com base na proporção
-#     num_aumentar = int(proporcoes[col] * mask.sum() / 100)
-
-#     # Alterando aleatoriamente os valores de 0 para 1 em colunas específicas
-#     indices_aumentar = np.random.choice(df_merged[mask].index, num_aumentar, replace=False)
-#     df_merged.loc[indices_aumentar, col] = 1
-
-# # Selecionando as colunas de interesse
-# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
-
-# # Contando quantas vezes o valor 1 aparece em cada uma das colunas
-# occurrences = df_merged[cols_of_interest].sum()
-
-# # Exibindo os resultados
-# print(occurrences)
-
-# # Definindo as colunas de interesse (as colunas de problemas binários)
-# cols_of_interest = ['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']
-
-# # Somando todos os valores das 7 colunas para calcular o total de problemas
-# total_problemas = df_merged[cols_of_interest].sum().sum()
-
-# # Calculando a proporção de cada problema em relação ao total de problemas
-# proporcoes = df_merged[cols_of_interest].sum() / total_problemas * 100
-
-# # Exibindo as proporções em porcentagem
-# print(proporcoes)
-
 # Dicionário para mapear os DDDs aos estados
 ddd_mapping_estados = {
     61: 'Distrito Federal',
@@ -367,38 +298,16 @@ df_merged['DDD'] = df_merged['DDD'].apply(tratar_ddd)
 # Aplicar o mapeamento de DDDs para Estados usando .loc para evitar SettingWithCopyWarning
 df_merged.loc[:, 'Estado'] = df_merged['DDD'].map(ddd_mapping_estados)
 
-# # Exibindo os primeiros resultados para verificar se a mudança foi aplicada corretamente
-# print(df_merged[['DDD', 'Estado']].head())
-
-# df_merged
-
 import pandas as pd
 
 # Convertendo a coluna 'Data Inscrição' para o formato datetime
 df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
-
-# Exibindo as primeiras linhas para confirmar a conversão
-# df_merged[['Data Inscrição']]
-
-# # Mostrar as colunas do df_tudao
-# print("Colunas presentes no df_tudao:")
-# print(df_tudao.columns)
-
-# # Calcular a porcentagem de valores nulos em cada coluna
-# porcentagem_nulos = df_tudao.isnull().mean() * 100
-
-# # Exibir a porcentagem de valores nulos por coluna
-# print("\nPorcentagem de valores nulos em cada coluna:")
-# print(porcentagem_nulos)
 
 # Quebrar a coluna 'title' no df_pipedrive_dup em três colunas
 df_pipedrive_dup[['id2', 'Problema2', 'numero_wpp']] = df_pipedrive_dup['title'].str.extract(r'(\d+)\s*-\s*(.*?)\s*-\s*(\+\d+)')
 
 # Remover a coluna original 'title' depois de extrair os valores
 df_pipedrive_dup.drop('title', axis=1, inplace=True)
-
-# # Conferir se a operação foi realizada corretamente
-# print(df_pipedrive_dup.head())
 
 # Selecionando as colunas 'numero_wpp' e 'lost reason' do df_pipedrive_dup
 df_separado = df_pipedrive_dup[['numero_wpp', 'lost_reason']]
@@ -408,130 +317,11 @@ df_separado_unique = df_separado.drop_duplicates(subset='numero_wpp', keep='firs
 # Perform the merge again after handling duplicates
 df_merged = pd.merge(df_merged, df_separado_unique, on='numero_wpp', how='left')
 
-# df_merged
-
 # Calculando a soma de cada valor único na coluna 'lost reason'
 lost_reason_counts = df_merged['lost_reason'].value_counts()
 
-# # Exibindo o resultado
-# print(lost_reason_counts)
-
 # Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
 df_merged = df_merged.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
-
-# # Supondo que você já tenha df_endpoint_dup e df_pipedrive_dup
-
-# # Passo 1: Remover duplicatas no numero_wpp para evitar dados inconsistentes
-# df_endpoint_dup_clean = df_endpoint_dup.drop_duplicates(subset='numero_wpp')
-# df_pipedrive_dup_clean = df_pipedrive_dup.drop_duplicates(subset='numero_wpp')
-
-# # Passo 2: Realizar o merge com base no numero_wpp (inner join para manter apenas os números em comum)
-# df_merged = pd.merge(df_pipedrive_dup_clean, df_endpoint_dup_clean, on='numero_wpp', how='inner', suffixes=('_pipedrive', '_endpoint'))
-
-# # Passo 3: Reorganizar as colunas para que 'numero_wpp' seja a primeira
-# cols = ['numero_wpp'] + [col for col in df_merged.columns if col != 'numero_wpp']
-# df_merged = df_merged[cols]
-
-# # Passo 4: Igualar os valores da coluna 'deal_id' aos valores da coluna 'pipedrive_deal_id'
-# df_merged['deal_id'] = df_merged['pipedrive_deal_id']
-
-# # Exibir o dataframe resultante para verificar a mudança
-# # df_merged
-
-# # Supondo que já temos o df_merged e o df_etiquetas_dup carregados
-
-# # 1. Certificar-se de que a coluna 'numero_wpp' está formatada corretamente em ambos os dataframes
-# df_merged['numero_wpp'] = df_merged['numero_wpp'].astype(str)
-# df_etiquetas_dup['numero_wpp'] = df_etiquetas_dup['numero_wpp'].astype(str)
-
-# # 2. Realizar o merge com base na coluna 'numero_wpp', mantendo apenas os números que já existem no df_merged
-# df_final = pd.merge(df_merged, df_etiquetas_dup, on='numero_wpp', how='left')
-
-# # # 3. Exibir o resultado para verificar se a junção foi realizada corretamente
-# # df_final
-
-# # Também podemos verificar a quantidade de linhas para garantir que o merge foi feito corretamente:
-# print(f"Quantidade de pessoas no df_final: {df_final['numero_wpp'].nunique()}")
-
-# # Remover todas as linhas onde o valor na coluna 'POSSÍVEL' seja NaN
-# df_final_limpo = df_final.dropna(subset=['POSSÍVEL'])
-
-# # Exibir as primeiras linhas do DataFrame resultante para verificação
-# # df_final_limpo
-
-# # Certificar que estamos trabalhando com uma cópia do DataFrame para evitar o SettingWithCopyWarning
-# df_final_limpo = df_final_limpo.copy()
-
-# # Dicionário para mapear os DDDs aos estados
-# ddd_mapping_estados = {
-#     61: 'Distrito Federal',
-#     62: 'Goiás', 64: 'Goiás',
-#     65: 'Mato Grosso', 66: 'Mato Grosso',
-#     67: 'Mato Grosso do Sul',
-#     82: 'Alagoas',
-#     71: 'Bahia', 73: 'Bahia', 74: 'Bahia', 75: 'Bahia', 77: 'Bahia',
-#     85: 'Ceará', 88: 'Ceará',
-#     98: 'Maranhão', 99: 'Maranhão',
-#     83: 'Paraíba',
-#     81: 'Pernambuco', 87: 'Pernambuco',
-#     86: 'Piauí', 89: 'Piauí',
-#     84: 'Rio Grande do Norte',
-#     79: 'Sergipe',
-#     68: 'Acre',
-#     96: 'Amapá',
-#     92: 'Amazonas', 97: 'Amazonas',
-#     91: 'Pará', 93: 'Pará', 94: 'Pará',
-#     69: 'Rondônia',
-#     95: 'Roraima',
-#     63: 'Tocantins',
-#     27: 'Espírito Santo', 28: 'Espírito Santo',
-#     31: 'Minas Gerais', 32: 'Minas Gerais', 33: 'Minas Gerais', 34: 'Minas Gerais',
-#     35: 'Minas Gerais', 37: 'Minas Gerais', 38: 'Minas Gerais',
-#     21: 'Rio de Janeiro', 22: 'Rio de Janeiro', 24: 'Rio de Janeiro',
-#     11: 'São Paulo', 12: 'São Paulo', 13: 'São Paulo', 14: 'São Paulo',
-#     15: 'São Paulo', 16: 'São Paulo', 17: 'São Paulo', 18: 'São Paulo', 19: 'São Paulo',
-#     41: 'Paraná', 42: 'Paraná', 43: 'Paraná', 44: 'Paraná', 45: 'Paraná', 46: 'Paraná',
-#     51: 'Rio Grande do Sul', 53: 'Rio Grande do Sul', 54: 'Rio Grande do Sul', 55: 'Rio Grande do Sul',
-#     47: 'Santa Catarina', 48: 'Santa Catarina', 49: 'Santa Catarina'
-# }
-
-# # Função para garantir que o DDD é numérico e tratar erros
-# def tratar_ddd(ddd):
-#     try:
-#         return int(ddd)
-#     except ValueError:
-#         return None
-
-# # Tratando os valores de DDD
-# df_final_limpo['DDD'] = df_final_limpo['DDD'].apply(tratar_ddd)
-
-# # Aplicar o mapeamento de DDDs para Estados usando .loc para evitar SettingWithCopyWarning
-# df_final_limpo.loc[:, 'Estado'] = df_final_limpo['DDD'].map(ddd_mapping_estados)
-
-# # Exibindo os primeiros resultados para verificar se a mudança foi aplicada corretamente
-# print(df_final_limpo[['DDD', 'Estado']].head())
-
-# # Criando o mapeamento correto para renomear os valores de 'stage_id' de números para strings
-# stage_mapping = {
-#     1: 'Captados',
-#     8: 'Em Análise',
-#     7: 'Recuperação'
-# }
-
-# # Aplicando o mapeamento corretamente usando .loc para evitar o SettingWithCopyWarning
-# df_final_limpo.loc[:, 'stage_id'] = df_final_limpo['stage_id'].map(stage_mapping)
-
-# # # Verifique se o mapeamento foi aplicado corretamente
-# # print(df_final_limpo['stage_id'].unique())
-
-# # Identificar as colunas que possuem 100% de valores nulos
-# cols_to_drop = df_final_limpo.columns[df_final_limpo.isnull().sum() == len(df_final_limpo)]
-
-# # Dropar as colunas identificadas
-# df_final_limpo = df_final_limpo.drop(columns=cols_to_drop)
-
-# # Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
-# df_final_limpo = df_final_limpo.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
 
 import dash
 from dash import dcc, html
