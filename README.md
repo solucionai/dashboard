@@ -75,3 +75,6 @@ O projeto já está rodando automaticamente após o deploy no Railway. Para mant
 
 # Railway
 Caso queira fazer consultas ao local do deploy basta fazer login em https://railway.app com esse mesmo login e senha e escolher o projeto "beneficial-reverence", lá é onde nosso Dashboard foi colocado em produção.
+
+# Considerações finais
+O Dashboard está rodando e funcionando perfeitamente, se quiser fazer alguma alteração na estrutura do código está anexado também o arquivo ipynb, já caso a alteração desejada seja apenas uma atualização diária dos dados siga as instruções no arquivo 'instruções.txt'.
