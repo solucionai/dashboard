@@ -47,7 +47,7 @@ O código utiliza callbacks do Dash para permitir que os gráficos sejam atualiz
 
 5. Execução do Servidor
 Função Principal:
-A função principal inicializa o servidor Flask e abre o dashboard no endereço http://0.0.0.0:8080/.
+A função principal inicializa o servidor Flask e abre o dashboard no endereço ]https://web-production-a7114.up.railway.app/home .
 Usa o modo debug=True para facilitar o desenvolvimento, exibindo erros detalhados quando ocorrem.
 
 # Passo a Passo para Configurar o Projeto
@@ -55,10 +55,15 @@ O projeto já está rodando automaticamente após o deploy no Railway. Para mant
 
 # Estrutura dos arquivos
 ├── estrutura.py                # Código principal do dashboard
+
 ├── gabi.xlsx                   # Base de dados relacionada ao total de casos atribuídos à Gabrielle.
+
 ├── hermes.xlsx                 # Base de dados relacionada ao total de casos atribuídos ao Hermes.
+
 ├── contratog.xlsx              # Dados de contratos totais assinados onde o caso foi atribuído à Gabrielle.
+
 ├── contratoh.xlsx              # Dados de contratos totais assinados onde o caso foi atribuído ao Hermes.
+
 ├── etiquetas.xlsx              # Base de dados que contém todas as leads e suas respectivas etiquetas.
 
 
