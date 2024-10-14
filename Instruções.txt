@@ -1,0 +1,23 @@
+Instruções para alterar/atualizar as bases de dados:
+
+gabi.xlsx                   # Essa base contém todos os leads atribuídos à Gabi, para baixar o arquivo xlsx basta ir na parte de Audiência          
+                              do bot conversa, clicar em Selecionar filtro, aplicar o filtro "Admin Atribuído : Gabrielle " e baixar o        
+                              relatório mantendo apenas as opções "Telefone", "Código de Área" e "Data de Inscrição".
+
+hermes.xlsx                 # Essa base contém todos os leads atribuídos ao Hermes, para baixar o arquivo xlsx basta ir na parte de 
+                              Audiência do bot conversa, clicar em Selecionar filtro, aplicar o filtro "Admin Atribuído : Hermes " e baixar 
+                              o relatório mantendo apenas as opções "Telefone", "Código de Área" e "Data de Inscrição".
+
+contratog.xlsx              # Essa base contém todos os contratos assinados em que o lead foi atribuído à Gabi, para baixar o arquivo xlsx 
+                              basta ir na parte de Audiência do bot conversa, clicar em Selecionar filtro, aplicar o filtro "Admin 
+                              Atribuído : Gabrielle ", ir novamente em Selecionar filtro e escolher a opção "CONTRATO ASSINADO" e baixar o 
+                              relatório mantendo apenas as opções "Telefone", "Código de Área" e "Data de Inscrição".
+
+contratoh.xlsx              # Essa base contém todos os contratos assinados em que o lead foi atribuído ao Hermes, para baixar o arquivo xlsx 
+                              basta ir na parte de Audiência do bot conversa, clicar em Selecionar filtro, aplicar o filtro "Admin 
+                              Atribuído : Gabrielle ", ir novamente em Selecionar filtro e escolher a opção "CONTRATO ASSINADO" e baixar o 
+                              relatório mantendo apenas as opções "Telefone", "Código de Área" e "Data de Inscrição".
+
+etiquetas.xlsx              # Essa base contém todas as leads e suas respectivas etiquetas, para baixar o arquivo não é necessário aplicar  
+                              nenhum filtro, caso esteja selecionado algum basta tirar. Vá na aba de Audiência e clique para baixar  
+                              relátorio, escolha as opções "Telefone", "Código de Área", "Data de Inscrição" e "Etiquetas".
