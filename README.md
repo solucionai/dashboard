@@ -9,10 +9,7 @@ pandas: Para manipulação de dados.
 flask: Necessário para rodar o dashboard como um serviço web.
 
 # Geração de Visualizações
-Utilizando Plotly Express para criar gráficos como:
-Total de leads por região
-Leads por dia
-Contratos assinados por atendente
+Utilizamos Plotly Express para criar os gráficos.
 
 # Estrutura do Dashboard
 1. Pre-processamento dos Dados
@@ -68,4 +65,4 @@ O projeto já está rodando automaticamente após o deploy no Railway. Para mant
 
 
 # Railway
-Caso queira fazer consultas ao local do deploy basta fazer login em https://railway.app com esse mesmo login e senha e escolher o projeto "beneficial-reverence".
+Caso queira fazer consultas ao local do deploy basta fazer login em https://railway.app com esse mesmo login e senha e escolher o projeto "beneficial-reverence", lá é onde nosso Dashboard foi colocado em produção.
