@@ -323,7 +323,463 @@ lost_reason_counts = df_merged['lost_reason'].value_counts()
 # Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
 df_merged = df_merged.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
 
-solucionai.COMPARTILHADO01
+import dash
+from dash import dcc, html
+import dash_bootstrap_components as dbc
+import plotly.express as px
+import pandas as pd
+from dash.dependencies import Input, Output
+
+df_merged = df_merged.rename(columns={'owner_name': 'Atendentes'})
+
+# Adding Roboto font from Google Fonts and FontAwesome for icons
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
+                                                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css",
+                                                "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"],
+                suppress_callback_exceptions=True)
+
+# Assuming df_merged is defined and pre-processed with 'Data Inscrição' column in datetime format
+df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
+
+# Calculate total people and total days
+total_pessoas = df_merged.shape[0]
+total_dias = (df_merged['Data Inscrição'].max() - df_merged['Data Inscrição'].min()).days
+media_pessoas_dia = total_pessoas / total_dias if total_dias > 0 else 0
+
+# Calculate total signed contracts
+total_contratos_assinados = df_merged[df_merged['CONTRATO ASSINADO'] == 1].shape[0]
+
+# Card styles (Updated with FontAwesome icons and new font)
+CARD_STYLE_UPDATED = {
+    "padding": "20px",
+    "border-radius": "10px",
+    "box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+    "text-align": "center",
+    "margin": "20px",
+    "background-color": "#f8f9fa",
+    "color": "#343a40",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+}
+
+CARD_STYLE_BLUE = {
+    "padding": "20px",
+    "border-radius": "10px",
+    "box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+    "text-align": "center",
+    "margin": "20px",
+    "background-color": "#17a2b8",
+    "color": "white",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+}
+
+CARD_STYLE_GREEN = {
+    "padding": "20px",
+    "border-radius": "10px",
+    "box-shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+    "text-align": "center",
+    "margin": "20px",
+    "background-color": "#28a745",
+    "color": "white",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+}
+
+# Define metric cards with FontAwesome icons
+card_total_pessoas = html.Div([
+    html.H4([html.I(className="fas fa-users", style={"margin-right": "10px"}), "Total de Pessoas na Base"],
+            style={"margin-bottom": "10px"}),
+    html.Div(f"{total_pessoas}", style={"font-size": "36px", "font-weight": "bold"}),
+], style=CARD_STYLE_UPDATED)
+
+card_media_pessoas_dia = html.Div([
+    html.H4([html.I(className="fas fa-calendar-day", style={"margin-right": "10px"}), "Média de Pessoas por Dia"],
+            style={"margin-bottom": "10px"}),
+    html.Div(f"{media_pessoas_dia:.2f}", style={"font-size": "36px", "font-weight": "bold"}),
+], style=CARD_STYLE_BLUE)
+
+card_contratos_assinados = html.Div([
+    html.H4([html.I(className="fas fa-file-signature", style={"margin-right": "10px"}), "Total de Contratos Assinados"],
+            style={"margin-bottom": "10px"}),
+    html.Div(f"{total_contratos_assinados}", style={"font-size": "36px", "font-weight": "bold"}),
+], style=CARD_STYLE_GREEN)
+
+# Sidebar style
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "20%",
+    "padding": "20px",
+    "background-color": "#343a40",
+}
+
+CONTENT_STYLE = {
+    "margin-left": "20%",
+    "padding": "20px",
+    "background-color": "#f8f9fa",
+    "text-align": "center",
+    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+}
+
+# Sidebar layout with the new problem filter
+sidebar = html.Div(
+    [
+        html.H2("Dashboard", className="display-6", style={"color": "white", "font-family": "'Roboto', sans-serif"}),
+        html.Hr(),
+        html.P("Solucionaí", className="lead", style={"color": "white", "font-family": "'Roboto', sans-serif"}),
+        dbc.Nav(
+            [
+                dbc.NavLink("Home", href="/home", id="home-button", style={"color": "white"}),
+                dbc.NavLink("Leads", href="/leads", id="leads-button", style={"color": "white"}),
+                dbc.NavLink("Atendentes", href="/atendentes", id="atendentes-button", style={"color": "white"}),
+            ],
+            vertical=True,
+            pills=True,
+        ),
+        # New problem filter dropdown added here
+        html.Div([
+            html.H5("Filtrar por Problema", style={"margin-top": "20px", "color": "white", "font-family": "'Roboto', sans-serif"}),
+            dcc.Dropdown(
+                id='problem-filter',
+                options=[
+                    {'label': 'Nenhum', 'value': 'Nenhum'},  # Default option
+                    {'label': 'Outros', 'value': 'Outros'},
+                    {'label': 'Negativação', 'value': 'Negativação'},
+                    {'label': 'Compras Online', 'value': 'Compras Online'},
+                    {'label': 'Serviços Bancários', 'value': 'Serviços Bancários'},
+                    {'label': 'Telefonia', 'value': 'Telefonia'}
+                ],
+                value='Nenhum',  # Default value
+                clearable=False,
+                style={"margin-bottom": "20px"}
+            )
+        ])
+    ],
+    style=SIDEBAR_STYLE,
+)
+
+# Date range picker for filtering the data
+date_picker = html.Div([
+    html.H5("Selecionar Período de Datas", style={"margin-bottom": "10px", "font-family": "'Roboto', sans-serif"}),
+    dcc.DatePickerRange(
+        id='date-picker-range',
+        start_date=df_merged['Data Inscrição'].min().date(),
+        end_date=df_merged['Data Inscrição'].max().date(),
+        display_format='DD-MM-YYYY',
+        style={"margin-bottom": "20px"}
+    )
+])
+
+content = html.Div(
+    [
+        html.H2("Dashboard de Dados Solucionaí", className="display-4", style={"font-family": "'Roboto', sans-serif"}),
+        html.Hr(),
+        date_picker,
+        html.Div(id="page-content"),
+    ],
+    style=CONTENT_STYLE,
+)
+
+app.layout = html.Div([sidebar, content])
+
+# Callback to handle page navigation (buttons)
+@app.callback(
+    Output("page-content", "children"),
+    [Input("home-button", "n_clicks"),
+     Input("leads-button", "n_clicks"),
+     Input("atendentes-button", "n_clicks")]
+)
+def display_page(n_home, n_leads, n_atendentes):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!",
+                       style={"font-family": "'Roboto', sans-serif"})
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        if button_id == "home-button":
+            return html.H3("Home, seja bem-vindo ao Dashboard de Dados da Solucionaí!",
+                           style={"font-family": "'Roboto', sans-serif"})
+        elif button_id == "leads-button":
+            return html.Div(id='leads-content')
+        elif button_id == "atendentes-button":
+            return html.Div(id='atendentes-content')
+
+# Callback to handle the date range picker and the problem filter, updating Leads graphs
+@app.callback(
+    Output("leads-content", "children"),
+    [Input("date-picker-range", "start_date"),
+     Input("date-picker-range", "end_date"),
+     Input("problem-filter", "value")]
+)
+def update_leads_content(start_date, end_date, selected_problem):
+    # Convert the date range values to datetime
+    if start_date and end_date:
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+    else:
+        start_date = df_merged['Data Inscrição'].min()
+        end_date = df_merged['Data Inscrição'].max()
+
+    # Filter the DataFrame based on the selected date range
+    filtered_df = df_merged[(df_merged['Data Inscrição'] >= start_date) & (df_merged['Data Inscrição'] <= end_date)]
+
+    # Apply the problem filter if it's not "Nenhum"
+    if selected_problem != "Nenhum":
+        filtered_df = filtered_df[filtered_df[selected_problem] > 0]
+
+    # Handle the case where no data is available for the selected range
+    if filtered_df.empty:
+        return html.Div("Nenhum dado disponível para o intervalo selecionado.")
+
+    # Gráfico 1: Total de Leads Cadastrados na Base por Período de Tempo
+    leads_by_date = filtered_df.groupby(filtered_df['Data Inscrição'].dt.date).size()
+    fig_total_leads = px.line(x=leads_by_date.index, y=leads_by_date.values, title="Total de Leads por Período",
+                              labels={'x': 'Data', 'y': 'Número de Leads'})
+
+    fig_total_leads.update_traces(line=dict(color="#17a2b8", width=1.5, dash="solid"),
+                                  marker=dict(size=6, color="#fd7e14"))
+    fig_total_leads.add_scatter(
+        x=leads_by_date.index,
+        y=leads_by_date.values,
+        mode='markers+text',
+        text=leads_by_date.values,
+        textposition="top center",
+        textfont=dict(size=10),
+        showlegend=False
+    )
+    fig_total_leads.update_layout(
+        xaxis=dict(range=[leads_by_date.index.min(), leads_by_date.index.max()]),
+        plot_bgcolor="light grey",
+        margin=dict(l=40, r=40, t=40, b=40),
+        hovermode="x unified",
+        transition=dict(duration=500)
+    )
+
+    # Gráfico 2: Contratos Fechados por Período
+    contratos_by_date = filtered_df[filtered_df['CONTRATO ASSINADO'] == 1].groupby(filtered_df['Data Inscrição'].dt.date).size()
+    fig_contratos_tempo = px.line(x=contratos_by_date.index, y=contratos_by_date.values, title="Contratos Fechados por Período",
+                                  labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
+
+    fig_contratos_tempo.update_traces(line=dict(color="#28a745", width=1.5), marker=dict(size=6, color="#fd7e14"))
+    fig_contratos_tempo.update_layout(
+        plot_bgcolor="light grey",
+        margin=dict(l=40, r=40, t=40, b=40),
+        hovermode="x unified",
+        transition=dict(duration=500)
+    )
+
+    # Gráfico 3: Leads por Tipo de Problema (não é afetado pelo filtro de problema)
+    leads_by_problem = df_merged[['Aviação', 'Outros', 'Hospedagem', 'Negativação', 'Compras Online', 'Serviços Bancários', 'Telefonia']].sum().sort_values(ascending=False)
+    fig_leads_problema = px.bar(x=leads_by_problem.index, y=leads_by_problem.values,
+                                title="Leads por Tipo de Problema",
+                                labels={'x': 'Tipo de Problema', 'y': 'Contagem de Leads'})
+
+    fig_leads_problema.update_traces(marker_color="#fd7e14", marker_line_color="#2c3e50", marker_line_width=1.5)
+    fig_leads_problema.update_layout(
+        plot_bgcolor="white",
+        margin=dict(l=40, r=40, t=40, b=40),
+        bargap=0.2
+    )
+
+    # Gráfico 4: Leads por Região ou DDD
+    leads_by_ddd = filtered_df['Estado'].value_counts()
+    leads_by_ddd = leads_by_ddd[leads_by_ddd > 9]
+    fig_leads_ddd = px.bar(x=leads_by_ddd.index, y=leads_by_ddd.values, title="Leads por Região",
+                           labels={'x': 'Estado', 'y': 'Contagem de Leads'})
+
+    fig_leads_ddd.update_traces(marker_color="#17a2b8", marker_line_color="#2c3e50", marker_line_width=1.5)
+    fig_leads_ddd.update_layout(
+        plot_bgcolor="white",
+        margin=dict(l=40, r=40, t=40, b=40),
+        bargap=0.2
+    )
+
+    # Gráfico 5: Leads que Completaram o Fluxo até o Final
+    completed_flow = filtered_df[filtered_df['COMPLETOU_O_FLUXO'] == 1].shape[0]
+    fig_fluxo_completo = px.pie(values=[completed_flow, filtered_df.shape[0] - completed_flow],
+                                names=['Completaram', 'Não Completaram'],
+                                title="Leads que Completaram o Fluxo até o Final")
+
+    fig_fluxo_completo.update_traces(
+        marker=dict(colors=["#007bff", "#ffc107"], line=dict(color='#2c3e50', width=1.5)),
+        textinfo="percent+label",
+        hoverinfo="label+percent",
+        pull=[0.1, 0]
+    )
+    fig_fluxo_completo.update_layout(
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Gráfico 6: Leads que Não Prosseguiram após o Primeiro Contato
+    leads_nao_prosseguiram = filtered_df[(filtered_df['ClienteDesistiu'] == 1) | (filtered_df['SEM RESPOSTA'] == 1)].shape[0]
+    fig_leads_nao_prosseguiram = px.pie(values=[leads_nao_prosseguiram, filtered_df.shape[0] - leads_nao_prosseguiram],
+                                        names=['Não Prosseguiram', 'Prosseguiram'],
+                                        title="Leads que Não Prosseguiram após o Primeiro Contato")
+
+    fig_leads_nao_prosseguiram.update_traces(
+        marker=dict(colors=["#dc3545", "#17a2b8"], line=dict(color='#2c3e50', width=1.5)),
+        textinfo="percent+label",
+        hoverinfo="label+percent",
+        pull=[0.1, 0]
+    )
+    fig_leads_nao_prosseguiram.update_layout(
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Gráfico 7: Motivo de Perda dos Leads Não Elegíveis
+    motivo_perda = filtered_df[filtered_df['NÃO ELEGÍVEL'] == 1]['lost_reason'].value_counts()
+
+    fig_motivos_perda_leads = px.bar(x=motivo_perda.index, y=motivo_perda.values,
+                                     title="Motivo de Perda dos Leads Não Elegíveis",
+                                     labels={'x': 'Motivo', 'y': 'Número de Leads Não Elegíveis'})
+
+    fig_motivos_perda_leads.update_traces(marker=dict(color='#ff5733', line=dict(color='#2c3e50', width=1.5)),
+                                          opacity=0.85)
+    fig_motivos_perda_leads.update_layout(
+        plot_bgcolor="white",
+        bargap=0.3,
+        margin=dict(l=40, r=40, t=40, b=40),
+        xaxis_tickangle=-45
+    )
+
+    # Gráfico 8: Leads por Status (New Graph)
+    status_columns = ['LEAD 1', 'LEAD 2', 'LEAD 3', 'NÃO ELEGÍVEL', 'ClienteDesistiu']
+    leads_by_status = filtered_df[status_columns].sum()
+    fig_leads_status = px.bar(x=leads_by_status.index, y=leads_by_status.values,
+                              title="Leads por Status",
+                              labels={'x': 'Status', 'y': 'Número de Leads'})
+
+    fig_leads_status.update_traces(marker_color="#007bff", marker_line_color="#2c3e50", marker_line_width=1.5)
+    fig_leads_status.update_layout(
+        plot_bgcolor="white",
+        margin=dict(l=40, r=40, t=40, b=40),
+        bargap=0.2
+    )
+
+    # Layout with cards placed beside graphs and ensuring responsiveness
+    layout = dbc.Container([
+        # First row: Total Leads graph with two cards to the right
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_total_leads), width=8),
+            dbc.Col([
+                card_total_pessoas,
+                card_media_pessoas_dia
+            ], width=4)
+        ], align="center"),
+
+        # Second row: Contracts signed graph with one card to the right
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_contratos_tempo), width=8),
+            dbc.Col(card_contratos_assinados, width=4)
+        ], align="center"),
+
+        # Third row: Other graphs
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_leads_problema), width=6),  # Excluded from filter
+            dbc.Col(dcc.Graph(figure=fig_leads_ddd), width=6),
+        ]),
+
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_fluxo_completo), width=6),
+            dbc.Col(dcc.Graph(figure=fig_leads_nao_prosseguiram), width=6),
+        ]),
+
+        # Final row: Lead loss reasons and new Leads by Status graph
+        dbc.Row([
+            dbc.Col(dcc.Graph(figure=fig_motivos_perda_leads), width=6),
+            dbc.Col(dcc.Graph(figure=fig_leads_status), width=6),
+        ]),
+    ], fluid=True)
+
+    return layout
+
+# Callback to handle the date range picker and update Atendentes graphs
+@app.callback(
+    Output("atendentes-content", "children"),
+    [Input("date-picker-range", "start_date"),
+     Input("date-picker-range", "end_date"),
+     Input("problem-filter", "value")]
+)
+def update_atendentes_content(start_date, end_date, selected_problem):
+    # Convert the date range values to datetime
+    if start_date and end_date:
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+    else:
+        start_date = df_merged['Data Inscrição'].min()
+        end_date = df_merged['Data Inscrição'].max()
+
+    # Filter the DataFrame based on the selected date range
+    filtered_df = df_merged[(df_merged['Data Inscrição'] >= start_date) &
+                            (df_merged['Data Inscrição'] <= end_date)]
+
+    # Apply the problem filter if it's not "Nenhum"
+    if selected_problem != "Nenhum":
+        filtered_df = filtered_df[filtered_df[selected_problem] > 0]
+
+    if filtered_df.empty:
+        return html.Div("Nenhum dado disponível para o intervalo selecionado.")
+
+    # Gráfico 1: Atendimentos por Dia por Atendente
+    filtered_df['Atendentes'] = filtered_df['Atribuidos'].map({1: 'Gabrielle', 2: 'Hermes Moriguchi'})
+    atendimentos_por_dia = filtered_df.groupby([filtered_df['Data Inscrição'].dt.date, 'Atendentes']).size().reset_index(name='Atendimentos')
+    fig_atendimentos_por_dia = px.line(atendimentos_por_dia,
+                                       x='Data Inscrição',
+                                       y='Atendimentos',
+                                       color='Atendentes',
+                                       title="Atendimentos por Dia por Atendente",
+                                       labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
+
+    fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))
+    fig_atendimentos_por_dia.update_layout(
+        plot_bgcolor="light grey",
+        margin=dict(l=40, r=40, t=40, b=40),
+        hovermode="x unified",
+        transition=dict(duration=500)
+    )
+
+    # Gráfico 2: Total de Interações com Leads por Atendente
+    interacoes_por_lead = filtered_df['Atendentes'].value_counts()
+    fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values,
+                                     title="Total de Interações com Leads por Atendente",
+                                     labels={'x': 'Atendente', 'y': 'Número de Leads'})
+
+    fig_interacoes_por_lead.update_traces(marker=dict(color=['#6f42c1', '#FFFF00'],
+                                                      line=dict(color='white', width=2)),
+                                          opacity=0.85, marker_line_width=2)
+    fig_interacoes_por_lead.update_layout(
+        plot_bgcolor="white",
+        bargap=0.2,
+        margin=dict(l=40, r=40, t=40, b=40),
+        xaxis_tickangle=-45
+    )
+
+    # Gráfico 3: Contratos Fechados por Atendente
+    total_contratos_gabi = filtered_df[(filtered_df['Atribuidos'] == 1) & (filtered_df['Contrato'] == 1)].shape[0]
+    total_contratos_hermes = filtered_df[(filtered_df['Atribuidos'] == 2) & (filtered_df['Contrato'] == 2)].shape[0]
+
+    fig_contratos_por_atendente = px.bar(x=['Gabrielle', 'Hermes Moriguchi'],
+                                         y=[total_contratos_gabi, total_contratos_hermes],
+                                         title="Contratos Fechados por Atendente",
+                                         labels={'x': 'Atendente', 'y': 'Número de Contratos Fechados'})
+
+    fig_contratos_por_atendente.update_traces(marker=dict(color=['#6f42c1', '#FFFF00'],
+                                                          line=dict(color='white', width=1.5)),
+                                              opacity=0.85, marker_line_width=2)
+    fig_contratos_por_atendente.update_layout(
+        plot_bgcolor="white",
+        bargap=0.2,
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+
+    # Return all Atendentes graphs
+    return html.Div([
+        dcc.Graph(figure=fig_atendimentos_por_dia, animate=True),
+        dcc.Graph(figure=fig_interacoes_por_lead, animate=True),
+        dcc.Graph(figure=fig_contratos_por_atendente, animate=True)
+    ])
 
 if __name__ == "__main__":
     app.run_server(debug=True, host='0.0.0.0', port=8080)
