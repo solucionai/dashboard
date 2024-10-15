@@ -644,9 +644,9 @@ def update_leads_content(start_date, end_date, selected_problem):
         xaxis_tickangle=-45
     )
 
-    # Gráfico 8: Leads por Status (New Graph)
+    # Gráfico 8: Leads por Status (New Graph) 
     status_columns = ['LEAD 1', 'LEAD 2', 'LEAD 3', 'NÃO ELEGÍVEL', 'ClienteDesistiu']
-    leads_by_status = filtered_df[status_columns].sum()
+    leads_by_status = filtered_df[status_columns].sum().sort_values(ascending=False)  # Sort in descending order
     fig_leads_status = px.bar(x=leads_by_status.index, y=leads_by_status.values,
                               title="Leads por Status",
                               labels={'x': 'Status', 'y': 'Número de Leads'})
