@@ -729,7 +729,7 @@ def update_atendentes_content(start_date, end_date, selected_problem):
                                        x='Data Inscrição',
                                        y='Atendimentos',
                                        color='Atendentes',
-                                       title="Atendimentos por Dia por Atendente",
+                                       title="Atendimentos Atribuídos Diariamente Para Cada Atendente",
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
     fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))
@@ -743,7 +743,7 @@ def update_atendentes_content(start_date, end_date, selected_problem):
     # Gráfico 2: Total de Interações com Leads por Atendente
     interacoes_por_lead = filtered_df['Atendentes'].value_counts()
     fig_interacoes_por_lead = px.bar(x=interacoes_por_lead.index, y=interacoes_por_lead.values,
-                                     title="Total de Interações com Leads por Atendente",
+                                     title="Total de Atribuições Para Cada Atendente",
                                      labels={'x': 'Atendente', 'y': 'Número de Leads'})
 
     fig_interacoes_por_lead.update_traces(marker=dict(color=['#6f42c1', '#FFFF00'],
