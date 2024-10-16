@@ -323,20 +323,45 @@ lost_reason_counts = df_merged['lost_reason'].value_counts()
 # Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
 df_merged = df_merged.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
 
+from flask import Flask
+from flask_httpauth import HTTPBasicAuth
 import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
+import warnings
 from dash.dependencies import Input, Output
 
-df_merged = df_merged.rename(columns={'owner_name': 'Atendentes'})
+# Suprimir todos os warnings
+warnings.filterwarnings("ignore")
 
-# Adding Roboto font from Google Fonts and FontAwesome for icons
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP,
-                                                "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css",
-                                                "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"],
+# Authentication setup
+auth = HTTPBasicAuth()
+
+# Define a dictionary of users and passwords
+users = {
+    "Solucionaí": "Gz!4b$7FqP9z&XdR"  # You can replace these with your actual username and password
+}
+
+# Function to authenticate users
+@auth.get_password
+def get_pw(username):
+    if username in users:
+        return users.get(username)
+    return None
+
+# Dash and Flask app initialization
+server = Flask(__name__)
+app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP,
+                                                               "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css",
+                                                               "https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"],
                 suppress_callback_exceptions=True)
+# Apply authentication to the whole app
+@server.route('/')
+@auth.login_required
+def index():
+    return app.index()
 
 # Assuming df_merged is defined and pre-processed with 'Data Inscrição' column in datetime format
 df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
