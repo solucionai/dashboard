@@ -341,7 +341,7 @@ auth = HTTPBasicAuth()
 
 # Define a dictionary of users and passwords
 users = {
-    "admin": "Solucionai467"  # You can replace these with your actual username and password
+    "Admin": "Solucionai467"  # You can replace these with your actual username and password
 }
 
 # Function to authenticate users
