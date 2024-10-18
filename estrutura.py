@@ -597,7 +597,9 @@ def update_leads_content(start_date, end_date, selected_problem):
         textfont=dict(size=10),
         showlegend=False
     )
+    # Set x-axis to start and end at the actual data range
     fig_contratos_tempo.update_layout(
+        xaxis=dict(range=[contratos_by_date.index.min(), contratos_by_date.index.max()]),
         plot_bgcolor="light grey",
         margin=dict(l=40, r=40, t=40, b=40),
         hovermode="x unified",
@@ -769,6 +771,7 @@ def update_atendentes_content(start_date, end_date, selected_problem):
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
     fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))
+    
     # Add numbers above the points
     fig_atendimentos_por_dia.add_scatter(
         x=atendimentos_por_dia['Data Inscrição'],
@@ -779,7 +782,9 @@ def update_atendentes_content(start_date, end_date, selected_problem):
         textfont=dict(size=10),
         showlegend=False
     )
+    # Set x-axis to start and end at the actual data range
     fig_atendimentos_por_dia.update_layout(
+        xaxis=dict(range=[atendimentos_por_dia['Data Inscrição'].min(), atendimentos_por_dia['Data Inscrição'].max()]),
         plot_bgcolor="light grey",
         margin=dict(l=40, r=40, t=40, b=40),
         hovermode="x unified",
