@@ -587,6 +587,16 @@ def update_leads_content(start_date, end_date, selected_problem):
                                   labels={'x': 'Data', 'y': 'Número de Contratos Fechados'})
 
     fig_contratos_tempo.update_traces(line=dict(color="#28a745", width=1.5), marker=dict(size=6, color="#fd7e14"))
+    # Add numbers above the points
+    fig_contratos_tempo.add_scatter(
+        x=contratos_by_date.index,
+        y=contratos_by_date.values,
+        mode='markers+text',
+        text=contratos_by_date.values,
+        textposition='top center',
+        textfont=dict(size=10),
+        showlegend=False
+    )
     fig_contratos_tempo.update_layout(
         plot_bgcolor="light grey",
         margin=dict(l=40, r=40, t=40, b=40),
@@ -759,6 +769,16 @@ def update_atendentes_content(start_date, end_date, selected_problem):
                                        labels={'Data Inscrição': 'Data', 'Atendimentos': 'Número de Atendimentos'})
 
     fig_atendimentos_por_dia.update_traces(line=dict(width=1.5, dash="solid"))
+    # Add numbers above the points
+    fig_atendimentos_por_dia.add_scatter(
+        x=atendimentos_por_dia['Data Inscrição'],
+        y=atendimentos_por_dia['Atendimentos'],
+        mode='markers+text',
+        text=atendimentos_por_dia['Atendimentos'],
+        textposition='top center',
+        textfont=dict(size=10),
+        showlegend=False
+    )
     fig_atendimentos_por_dia.update_layout(
         plot_bgcolor="light grey",
         margin=dict(l=40, r=40, t=40, b=40),
