@@ -9,7 +9,7 @@ Original file is located at
 # Puxando os dados do Analytics
 """
 # !pip install dash dash-bootstrap-components plotly flask
-
+import os
 from google.analytics.data_v1beta import BetaAnalyticsDataClient, RunReportRequest, DateRange, Dimension, Metric
 import requests
 from datetime import datetime, timedelta
@@ -369,21 +369,21 @@ def authenticate():
     pass  # Authentication is handled by HTTPBasicAuth
 
 
-# GitHub API Integration to Get Last Commit Date with Time Zone Conversion
+# Pega o token da variável de ambiente
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+
 def get_last_commit_date(owner, repo, file_path):
     url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={file_path}&per_page=1"
-    headers = {'Authorization': f'token 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'}  # Replace with your GitHub token
+    headers = {'Authorization': f'token {GITHUB_TOKEN}'}
     response = requests.get(url, headers=headers)
-
+    
     if response.status_code == 200:
         commit_info = response.json()[0]
         commit_date_utc = pd.to_datetime(commit_info['commit']['committer']['date'])
 
-        # Convert the commit date from UTC to São Paulo time (BRT)
+        # Convert to São Paulo timezone
         saopaulo_tz = pytz.timezone('America/Sao_Paulo')
         commit_date_saopaulo = commit_date_utc.tz_convert(saopaulo_tz)
-
-        # Convert to Brazilian date/time format
         commit_date_formatted = commit_date_saopaulo.strftime('%d/%m às %H:%M')
         return commit_date_formatted
     else:
