@@ -323,15 +323,18 @@ lost_reason_counts = df_merged['lost_reason'].value_counts()
 # Substituir todos os valores nulos por 0, exceto na coluna 'lost_reason'
 df_merged = df_merged.apply(lambda col: col.fillna(0) if col.name != 'lost_reason' else col)
 
+import requests
+import pytz  # Import pytz for time zone handling
+import pandas as pd
 from flask import Flask, request, Response
-from flask_httpauth import HTTPBasicAuth
 import dash
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 import plotly.express as px
-import pandas as pd
-import warnings
 from dash.dependencies import Input, Output
+import warnings
+from flask_httpauth import HTTPBasicAuth
+
 
 # Suprimir todos os warnings
 warnings.filterwarnings("ignore")
@@ -351,6 +354,7 @@ def get_pw(username):
         return users.get(username)
     return None
 
+
 # Dash and Flask app initialization
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTSTRAP,
@@ -363,6 +367,37 @@ app = dash.Dash(__name__, server=server, external_stylesheets=[dbc.themes.BOOTST
 @auth.login_required
 def authenticate():
     pass  # Authentication is handled by HTTPBasicAuth
+
+
+# GitHub API Integration to Get Last Commit Date with Time Zone Conversion
+def get_last_commit_date(owner, repo, file_path):
+    url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={file_path}&per_page=1"
+    headers = {'Authorization': f'token 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'}  # Replace with your GitHub token
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        commit_info = response.json()[0]
+        commit_date_utc = pd.to_datetime(commit_info['commit']['committer']['date'])
+
+        # Convert the commit date from UTC to São Paulo time (BRT)
+        saopaulo_tz = pytz.timezone('America/Sao_Paulo')
+        commit_date_saopaulo = commit_date_utc.tz_convert(saopaulo_tz)
+
+        # Convert to Brazilian date/time format
+        commit_date_formatted = commit_date_saopaulo.strftime('%d/%m às %H:%M')
+        return commit_date_formatted
+    else:
+        return "Data não disponível"
+
+# Fetching the last update time from GitHub for each XLSX file
+owner = "solucionai"
+repo = "dashboard"
+files = ["etiquetas.xlsx", "gabi.xlsx", "hermes.xlsx", "contratoh.xlsx", "contratog.xlsx"]
+
+last_update_times = [get_last_commit_date(owner, repo, file) for file in files]
+
+# Assuming all files are updated at the same time, you can use the first one
+last_update_display = last_update_times[0]
 
 # Assuming df_merged is defined and pre-processed with 'Data Inscrição' column in datetime format
 df_merged['Data Inscrição'] = pd.to_datetime(df_merged['Data Inscrição'], errors='coerce')
@@ -384,7 +419,7 @@ CARD_STYLE_UPDATED = {
     "margin": "20px",
     "background-color": "#f8f9fa",
     "color": "#343a40",
-    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+    "font-family": "'Roboto', sans-serif",
 }
 
 CARD_STYLE_BLUE = {
@@ -395,7 +430,7 @@ CARD_STYLE_BLUE = {
     "margin": "20px",
     "background-color": "#17a2b8",
     "color": "white",
-    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+    "font-family": "'Roboto', sans-serif",
 }
 
 CARD_STYLE_GREEN = {
@@ -406,7 +441,7 @@ CARD_STYLE_GREEN = {
     "margin": "20px",
     "background-color": "#28a745",
     "color": "white",
-    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+    "font-family": "'Roboto', sans-serif",
 }
 
 # Define metric cards with FontAwesome icons
@@ -444,8 +479,14 @@ CONTENT_STYLE = {
     "padding": "20px",
     "background-color": "#f8f9fa",
     "text-align": "center",
-    "font-family": "'Roboto', sans-serif",  # Using the Roboto font
+    "font-family": "'Roboto', sans-serif",
 }
+
+# Add "last update" information to be displayed on the dashboard
+last_update_text = html.Div([
+    html.H5(f"Última atualização feita em {last_update_display}",
+            style={"color": "black", "font-family": "'Roboto', sans-serif"})
+])
 
 # Sidebar layout with the new problem filter
 sidebar = html.Div(
@@ -500,6 +541,7 @@ content = html.Div(
     [
         html.H2("Dashboard de Dados Solucionaí", className="display-4", style={"font-family": "'Roboto', sans-serif"}),
         html.Hr(),
+        last_update_text,  # Add last update text here
         date_picker,
         html.Div(id="page-content"),
     ],
