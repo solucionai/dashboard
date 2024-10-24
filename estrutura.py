@@ -372,9 +372,9 @@ def authenticate():
 # GitHub API Integration to Get Last Commit Date with Time Zone Conversion
 def get_last_commit_date(owner, repo, file_path):
     url = f"https://api.github.com/repos/{owner}/{repo}/commits?path={file_path}&per_page=1"
-    headers = {'Authorization': f'token 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'}  # Replace with your GitHub token
+    headers = {'Authorization': f'token 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'}  # Replace with your GitHub token
     response = requests.get(url, headers=headers)
-    
+
     if response.status_code == 200:
         commit_info = response.json()[0]
         commit_date_utc = pd.to_datetime(commit_info['commit']['committer']['date'])
