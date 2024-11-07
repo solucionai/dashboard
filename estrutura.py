@@ -100,103 +100,103 @@ df_gabi = pd.read_excel('gabi.xlsx')
 df_contratog = pd.read_excel('contratog.xlsx')
 df_contratoh = pd.read_excel('contratoh.xlsx')
 
-"""# Puxando os dados do endpoint"""
+# """# Puxando os dados do endpoint"""
 
-# Função para buscar todos os dados do endpoint
-def fetch_all_data(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            return pd.DataFrame(data)  # Converte os dados em um DataFrame
-        else:
-            print(f"Error: {response.status_code}, Detail: {response.json().get('detail', 'No detail provided')}")
-    except requests.RequestException as e:
-        print(f"Failed to make the request: {e}")
-        return pd.DataFrame()
+# # Função para buscar todos os dados do endpoint
+# def fetch_all_data(url):
+#     try:
+#         response = requests.get(url)
+#         if response.status_code == 200:
+#             data = response.json()
+#             return pd.DataFrame(data)  # Converte os dados em um DataFrame
+#         else:
+#             print(f"Error: {response.status_code}, Detail: {response.json().get('detail', 'No detail provided')}")
+#     except requests.RequestException as e:
+#         print(f"Failed to make the request: {e}")
+#         return pd.DataFrame()
 
-# URL do endpoint
-url = "https://web-production-c353.up.railway.app/retrieve_all"
+# # URL do endpoint
+# url = "https://web-production-c353.up.railway.app/retrieve_all"
 
-# Chamando a função e obtendo os dados
-df_endpoint = fetch_all_data(url)
+# # Chamando a função e obtendo os dados
+# df_endpoint = fetch_all_data(url)
 
-# Verificação básica dos dados
-if df_endpoint.empty:
-    print("Os dados não foram carregados corretamente. Verifique o endpoint ou o formato dos dados.")
-    exit()
+# # Verificação básica dos dados
+# if df_endpoint.empty:
+#     print("Os dados não foram carregados corretamente. Verifique o endpoint ou o formato dos dados.")
+#     exit()
 
-# Função para calcular o tempo em cada etapa com base nas colunas de timestamp
-def calculate_stage_duration(row):
-    created_at = pd.to_datetime(row['created_at'], errors='coerce')
-    last_modified = pd.to_datetime(row['last_modified'], errors='coerce')
-    if pd.isnull(created_at) or pd.isnull(last_modified):
-        return 0  # Retorna 0 se houver erro de conversão
-    duration = (last_modified - created_at).total_seconds() / 60  # Duração em minutos
-    return duration
+# # Função para calcular o tempo em cada etapa com base nas colunas de timestamp
+# def calculate_stage_duration(row):
+#     created_at = pd.to_datetime(row['created_at'], errors='coerce')
+#     last_modified = pd.to_datetime(row['last_modified'], errors='coerce')
+#     if pd.isnull(created_at) or pd.isnull(last_modified):
+#         return 0  # Retorna 0 se houver erro de conversão
+#     duration = (last_modified - created_at).total_seconds() / 60  # Duração em minutos
+#     return duration
 
-# Função para extrair a última etapa (flag) alcançada na jornada
-def extract_final_stage(raw_data):
-    try:
-        flags = {
-            'voo': int(raw_data.get('FLAG_VOO_JORNADA', 0)),
-            'negativacao': int(raw_data.get('FLAG_NEGATIVACAO_JORNADA', 0)),
-            'telefonia': int(raw_data.get('FLAG_SERV_TELEF_JORNADA', 0)),
-            'bancario': int(raw_data.get('FLAG_SERV_BANCARIO_JORNADA', 0)),
-            'compra_online': int(raw_data.get('FLAG_COMPRA_ONLINE_JORNADA', 0)),
-            'outros': int(raw_data.get('FLAG_OUTROS_JORNADA', 0)),
-            'hospedagem': int(raw_data.get('FLAG_HOSPEDAGEM_JORNADA', 0))
-        }
-        final_stage = max(flags.values())  # Encontra a maior flag para determinar a etapa final
-        return final_stage
-    except Exception as e:
-        print(f"Erro ao extrair etapa final: {e}")
-        return 0
+# # Função para extrair a última etapa (flag) alcançada na jornada
+# def extract_final_stage(raw_data):
+#     try:
+#         flags = {
+#             'voo': int(raw_data.get('FLAG_VOO_JORNADA', 0)),
+#             'negativacao': int(raw_data.get('FLAG_NEGATIVACAO_JORNADA', 0)),
+#             'telefonia': int(raw_data.get('FLAG_SERV_TELEF_JORNADA', 0)),
+#             'bancario': int(raw_data.get('FLAG_SERV_BANCARIO_JORNADA', 0)),
+#             'compra_online': int(raw_data.get('FLAG_COMPRA_ONLINE_JORNADA', 0)),
+#             'outros': int(raw_data.get('FLAG_OUTROS_JORNADA', 0)),
+#             'hospedagem': int(raw_data.get('FLAG_HOSPEDAGEM_JORNADA', 0))
+#         }
+#         final_stage = max(flags.values())  # Encontra a maior flag para determinar a etapa final
+#         return final_stage
+#     except Exception as e:
+#         print(f"Erro ao extrair etapa final: {e}")
+#         return 0
 
-# Aplicar as funções ao dataframe
-df_endpoint['created_at'] = pd.to_datetime(df_endpoint['created_at'], errors='coerce')
-df_endpoint['Tempo_na_Etapa'] = df_endpoint.apply(calculate_stage_duration, axis=1)
-df_endpoint['Etapa_Final'] = df_endpoint['RAW_DATA'].apply(extract_final_stage)
-# Substituir valores NaN por 0 em todas as colunas do df_endpoint
-df_endpoint = df_endpoint.fillna(0)
+# # Aplicar as funções ao dataframe
+# df_endpoint['created_at'] = pd.to_datetime(df_endpoint['created_at'], errors='coerce')
+# df_endpoint['Tempo_na_Etapa'] = df_endpoint.apply(calculate_stage_duration, axis=1)
+# df_endpoint['Etapa_Final'] = df_endpoint['RAW_DATA'].apply(extract_final_stage)
+# # Substituir valores NaN por 0 em todas as colunas do df_endpoint
+# df_endpoint = df_endpoint.fillna(0)
 
-# Lista de colunas de interesse
-columns = [
-    'FLAG_HOSPEDAGEM_JORNADA',
-    'FLAG_OUTROS_JORNADA',
-    'FLAG_VOO_JORNADA',
-    'FLAG_COMPRA_ONLINE_JORNADA',
-    'FLAG_SERV_BANCARIO_JORNADA',
-    'FLAG_NEGATIVACAO_JORNADA',
-    'FLAG_SERV_TELEF_JORNADA'
-]
+# # Lista de colunas de interesse
+# columns = [
+#     'FLAG_HOSPEDAGEM_JORNADA',
+#     'FLAG_OUTROS_JORNADA',
+#     'FLAG_VOO_JORNADA',
+#     'FLAG_COMPRA_ONLINE_JORNADA',
+#     'FLAG_SERV_BANCARIO_JORNADA',
+#     'FLAG_NEGATIVACAO_JORNADA',
+#     'FLAG_SERV_TELEF_JORNADA'
+# ]
 
-# Converter as colunas para numérico, ignorando erros e preenchendo com NaN para valores não convertíveis
-for col in columns:
-    df_endpoint[col] = pd.to_numeric(df_endpoint[col], errors='coerce')
+# # Converter as colunas para numérico, ignorando erros e preenchendo com NaN para valores não convertíveis
+# for col in columns:
+#     df_endpoint[col] = pd.to_numeric(df_endpoint[col], errors='coerce')
 
-# Calcular o valor máximo para cada coluna
-max_values = {col: df_endpoint[col].max() for col in columns}
+# # Calcular o valor máximo para cada coluna
+# max_values = {col: df_endpoint[col].max() for col in columns}
 
-# Determinar o valor máximo global entre todas as flags
-max_global = max(max_values.values())
+# # Determinar o valor máximo global entre todas as flags
+# max_global = max(max_values.values())
 
-print("Valores máximos de cada coluna:")
-for col, max_val in max_values.items():
-    print(f"{col}: {max_val}")
+# print("Valores máximos de cada coluna:")
+# for col, max_val in max_values.items():
+#     print(f"{col}: {max_val}")
 
-print(f"Valor máximo global: {max_global}")
+# print(f"Valor máximo global: {max_global}")
 
-# Criar a coluna FLAG_FINAL, onde 1 indica que a pessoa chegou ao fim e 0 indica que não
-df_endpoint['FLAG_FINAL'] = df_endpoint[columns].max(axis=1).apply(lambda x: 1 if x == max_global else 0)
+# # Criar a coluna FLAG_FINAL, onde 1 indica que a pessoa chegou ao fim e 0 indica que não
+# df_endpoint['FLAG_FINAL'] = df_endpoint[columns].max(axis=1).apply(lambda x: 1 if x == max_global else 0)
 
-# # Exibir as primeiras linhas para ver o resultado
-# print(df_endpoint[['FLAG_FINAL'] + columns].head())
+# # # Exibir as primeiras linhas para ver o resultado
+# # print(df_endpoint[['FLAG_FINAL'] + columns].head())
 
 """# Unificação e tratamento de dados"""
 
 # Duplicar os DataFrames
-df_endpoint_dup = df_endpoint
+# df_endpoint_dup = df_endpoint
 df_pipedrive_dup = df_pipedrive
 df_etiquetas_dup = df_etiquetas
 df_tudao2 = df_etiquetas.copy()
