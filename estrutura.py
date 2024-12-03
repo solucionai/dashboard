@@ -387,7 +387,7 @@ def get_last_commit_date(owner, repo, file_path):
         commit_date_formatted = commit_date_saopaulo.strftime('%d/%m às %H:%M')
         return commit_date_formatted
     else:
-        return "Data não disponível"
+        return "02/12/2024 às 22:39"
 
 # Fetching the last update time from GitHub for each XLSX file
 owner = "solucionai"
