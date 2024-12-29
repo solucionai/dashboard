@@ -484,7 +484,7 @@ CONTENT_STYLE = {
 
 # Add "last update" information to be displayed on the dashboard
 last_update_text = html.Div([
-    html.H5(f"Última atualização feita em {last_update_display}",
+    html.H5(f"Última atualização feita em 29/12 às 19:23",
             style={"color": "black", "font-family": "'Roboto', sans-serif"})
 ])
 
